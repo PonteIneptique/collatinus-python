@@ -58,5 +58,10 @@ def lignesFichier(nf):
     """
     with open(nf) as file:
         for line in file.readlines():
+            line = line.strip()
             if line and not line.startswith("!") and not line.startswith("! --- "):
                 yield line
+
+
+def flatten(liste):
+    return [x for y in liste for x in y]

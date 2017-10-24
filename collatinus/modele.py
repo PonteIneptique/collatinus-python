@@ -1,7 +1,7 @@
 import re
 import warnings
 from .ch import simplified, allonge, atone
-from .util import DefaultOrderedDict
+from .util import DefaultOrderedDict, flatten
 
 
 class Desinence(object):
@@ -22,10 +22,8 @@ class Desinence(object):
         # rareté de la désinence, est 10 par défaut.
 
         self._rarete = 10
-        der = -1
-        if d:
-            der = int(d[len(d)-1])
-        if der > 0:
+        if d and d[-1].isdigit():
+            der = int(d[-1])
             self._rarete = der
             d = d[:-1]
 
@@ -117,6 +115,7 @@ class Modele(object):
 
         :param ll: Liste de champs séparés par le caractère ":". Le premier champ est un mot-clef
         :param parent: Lemmatiseur
+        :type parent: collatinus.lemmatiseur.Lemmatiseur
 
         :ivar _desinences: Dictionnaire de liste de désinences pour les morpho KEY
         :type _desinences: dict of list of Desinence
@@ -126,10 +125,11 @@ class Modele(object):
         self._desinences = DefaultOrderedDict(list)
         self.msuff = DefaultOrderedDict(list)  # list of int
         self._absents = []  # List of int
-        self._genRadicaux = {}
+        self._genRadicaux = {}  # int -> str
         self._gr = ""
         self._grq = ""
 
+        print(ll)
         for original_l in ll:
             # remplacement des variables par leur valeur
             l = "" + original_l
@@ -140,6 +140,7 @@ class Modele(object):
                 if pre:
                     var = var.replace(";", ";" + pre)
                 l = l.replace(v, var)
+            print("--", original_l, l)
 
             eclats = simplified(l).split(":")
             # modele pere des des  R   abs
@@ -157,10 +158,11 @@ class Modele(object):
                 r = int(eclats[2])
                 ld = eclats[3].split(';')
                 for i in range(len(li)):
-                    if i < ld.count():
-                        ldd = ld[1].split(',')
+                    if i < len(ld):
+                        ldd = ld[i].split(',')
                     else:
                         ldd = ld[-1].split(',')
+
                     for g in ldd:
                         nd = Desinence(g, li[i], r, self)
                         self._desinences[nd.morphoNum()].append(nd)
@@ -169,7 +171,7 @@ class Modele(object):
                 # si des+, chercher les autres désinences chez le père :
                 if p == 3:
                     for i in li:
-                        ldp = self._pere.desinences(i) # Liste de desinences au numéro i
+                        ldp = self._pere.desinences(i)  # Liste de desinences au numéro i
                         for dp in ldp:
                             # cloner la désinece
                             dh = self.clone(dp)
@@ -203,7 +205,7 @@ class Modele(object):
                 warnings.warn("Modele : Erreur pour " + l)
 
         # père
-        if self._pere != 0:
+        if self._pere:
             for m in self._pere.morphos():
                 # héritage des désinence
                 if self.deja(m):
@@ -217,10 +219,11 @@ class Modele(object):
                     self._lemmatiseur.ajDesinence(dh)
 
             # héritage des radicaux
-            for d in self._desinences:
-                if d.numRad() not in self._genRadicaux:
-                    nr = self._pere.genRadical(d.numRad())
-                    self._genRadicaux[d.numRad()] = nr
+            for numRad in set([d.numRad() for d in flatten(self._desinences.values())]):
+                print(numRad, self._genRadicaux, self._pere._genRadicaux)
+                if numRad not in self._genRadicaux:
+                    nr = self._pere.genRadical(numRad)
+                    self._genRadicaux[numRad] = nr
 
             # héritage des absents
             self._absents = self._pere.absents()
@@ -358,6 +361,7 @@ class Modele(object):
         :return: Chaîne permettant de calculer un radical à partir de la forme canonique d'un lemme. 
         :rtype: str
         """
+        print(self._pere)
         return self._genRadicaux[r]
 
     def morphos(self):

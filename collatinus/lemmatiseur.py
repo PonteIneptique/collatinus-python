@@ -54,7 +54,6 @@ class Lemmatiseur(object):
         """ Charge et définit les débuts de mots non-assimilés, associe à chacun sa forme assimilée.
         """
         for lin in lignesFichier(self.path("assimilations.la")):
-            print(lin)
             return
             ass1, ass2 = tuple(lin.split(':'))
             self._assims[ass1] = ass2
@@ -86,6 +85,10 @@ class Lemmatiseur(object):
                 sl = []
 
             sl.append(l)
+
+    def ajDesinence(self, d):
+        """ Ajoute la désinence d dans la map des désinences. """
+        self._desinences[deramise(d.gr())].append(d)
 
     def morpho(self, m):
         """ Renvoie la chaîne de rang m dans la liste des morphologies donnée par le fichier data/morphos.la
@@ -204,3 +207,28 @@ class Lemmatiseur(object):
             )
 
         return result
+
+    def variable(self, v):
+        """ Permet de remplacer la métavariable v
+            par son contenu. Ces métavariables sont
+            utilisées par le fichier modeles.la, pour
+            éviter de répéter des suites de désinences.
+            Elles sont repérées comme en PHP, leur
+            premier caractère $.
+
+            :param v: Nom de la variable
+            :type v: str
+            :return: Valeur de variable
+            :rtype: str
+        """
+        return self._variables[v]
+
+    def modele(self, m):
+        """ Renvoie l'objet de la classe Modele dont le nom est m.
+
+        :param m: Nom de modele
+        :type m: str
+        :return: Modele correspondant
+        :rtype: Modele
+        """
+        return self._modeles[m]

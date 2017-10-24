@@ -1,4 +1,5 @@
 import re
+from unidecode import unidecode
 
 voyelles = "āăēĕīĭōŏūŭȳўĀĂĒĔĪĬŌŎŪŬȲЎ"
 consonnes = "bcdfgjklmnpqrstvxz"
@@ -35,36 +36,15 @@ def atone(string, caps=True):
     :return: Chaîne nettoyée
     :rtype: str
     """
-    a = string.replace(0x0101, 'a') \
-        .replace(0x0103, 'a') \
-        .replace(0x0113, 'e') \
-        .replace(0x0115, 'e') \
-        .replace(0x012b, 'i') \
-        .replace(0x012d, 'i') \
-        .replace(0x014d, 'o') \
-        .replace(0x014f, 'o') \
-        .replace(0x016b, 'u') \
-        .replace(0x016d, 'u') \
-        .replace(0x0233, 'y') \
-        .replace(0x045e, 'y') \
-        .replace(0x0131, 'i') \
-        .replace(0x1ee5, 'u') \
-        .replace(0x0306, '')
-
-    if caps:
-        # majuscule
-        a = a.replace(0x0100, 'A') \
-            .replace(0x0102, 'A') \
-            .replace(0x0112, 'E') \
-            .replace(0x0114, 'E') \
-            .replace(0x012a, 'I') \
-            .replace(0x012c, 'I') \
-            .replace(0x014c, 'O') \
-            .replace(0x014e, 'O') \
-            .replace(0x016a, 'U') \
-            .replace(0x016c, 'U') \
-            .replace(0x0232, 'Y') \
-            .replace(0x040e, 'Y')
+    a = ""
+    for chr in string:
+        if caps:
+            if chr.isupper():
+                a += unidecode(chr)
+            else:
+                a += chr
+        else:
+            a += unidecode(chr)
     return a
 
 
@@ -124,7 +104,7 @@ def deramise(r):
             .replace("Æ", "Ae") \
             .replace("œ", "oe") \
             .replace("Œ", "Oe") \
-            .replace(0x1ee5, 'u') \
+            .replace("ụ", 'u') \
             .replace('V', 'U')
 
 
