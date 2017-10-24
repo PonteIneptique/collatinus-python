@@ -1,11 +1,17 @@
 from . import Lemmatiseur
 from .ch import atone, deramise
 import warnings
+import re
 
 class Lemme(object):
+    RENVOI = re.compile("cf\\.\\s(\\w+)$")
     def __init__(self, linea, origin, *parent):
         """ Constructeur de la classe Lemme à partire de la ligne linea.
             *parent est le lemmatiseur (classe Lemmat).
+
+        Exemple de linea avec numéro d'éclat:
+            # cădo|lego|cĕcĭd|cās|is, ere, cecidi, casum|687
+            #   0 | 1  | 2   | 3 |     4                | 5
 
         :param linea: Ligne à parser
         :type linea: str
@@ -14,16 +20,14 @@ class Lemme(object):
         :param parent: Lemmatiseur
         :type parent: Lemmatiseur
         """
-        # cădo|lego|cĕcĭd|cās|is, ere, cecidi, casum|687
-        #   0 | 1  | 2   | 3 |     4                | 5
-
         self._lemmatiseur = parent
 
         eclats = linea.split('|')
         lg = eclats[0].split('=')
 
         self._cle = atone(deramise(lg[0]))
-        self._grd = self.oteNh(lg[0], _nh)  # TODO: Cette ligne pose un problè : d'ou vient le _nh
+        self._nh = None
+        self._grd = self.oteNh(lg[0])  # TODO: Cette ligne pose un problè : d'ou vient le _nh
 
         if lg.count() == 1:
             self._grq = _grd
@@ -51,63 +55,48 @@ class Lemme(object):
                 for rad in lrad:
                     _radicaux[i-1].append(new Radical(rad, i-1, self))
 
-        _lemmatiseur.ajRadicaux(self)
+        self._lemmatiseur.ajRadicaux(self)
 
-        _indMorph = eclats.at(4)
-        QRegExp c("cf\\.\\s(\\w+)$")
-        pos = c.indexIn(_indMorph)
+        # Gros doute sur le fonctionnement ici
+        self._indMorph = eclats[4]
+        pos = RENVOI.find(self._indMorph)
         if pos > -1:
-            _renvoi = c.cap(1)
-
+            self._renvoi = c.group(1)
         else:
-            _renvoi = ""
+            self._renvoi = ""
 
-        _pos.clear()
-        if _indMorph.contains("adj."):
-            _pos.append('a')
-        if _indMorph.contains("conj"):
-            _pos.append('c')
-        if _indMorph.contains("excl."):
-            _pos.append('e')
-        if _indMorph.contains("interj"):
-            _pos.append('i')
-        if _indMorph.contains("num."):
-            _pos.append('m')
-        if _indMorph.contains("pron."):
-            _pos.append('p')
-        if _indMorph.contains("prép"):
-            _pos.append('r')
-        if _indMorph.contains("adv"):
-            _pos.append('d')
-        if _indMorph.contains(" nom ") or _indMorph.contains("npr."):
-            _pos.append('n')
-        if _pos.isEmpty():
-            _pos.append(_modele.pos())
+        self._pos = ""
+        if "adj." in self._indMorph:
+            self._pos += 'a'
+        if "conj" in self._indMorph:
+            self._pos += 'c'
+        if "excl." in self._indMorph:
+            self._pos += 'e'
+        if "interj" in self._indMorph:
+            self._pos += 'i'
+        if "num." in self._indMorph:
+            self._pos += 'm'
+        if "pron." in self._indMorph:
+            self._pos += 'p'
+        if "prép" in self._indMorph:
+            self._pos += 'r'
+        if "adv" in self._indMorph:
+            self._pos += 'd'
+        if " nom " in self._indMorph:
+            self._pos += 'n'
+        if "npr." in self._indMorph:
+            self._pos += 'n'
+        if not self._pos:
+            self._pos = self._modele.pos()
             # Je prends le POS du modèle
-            if _pos == "d" and not _renvoi.isEmpty():
-                _pos = ""
+            if self._pos == "d" and self._renvoi:
+                self._pos = ""
             # S'il y a un renvoi (cf.) et que le modèle a donné le POS "d" (adverbe),
             # je prendrai le pos du renvoi (les indéclinables ont le POS par défaut "d").
             # Je ne peux pas le faire maintenant !
 
         # nombre d'occurrences
-        _nbOcc = eclats.at(5).toInt()
-
-
-    ''' Avec l'internationalisation des morphos, genre dépend de la langue choisie.
-     * Il faut donc le définir à la demande.
-        _genre.clear()
-        if _indMorph.contains(" m."):
-            _genre.append(" " + _lemmatiseur.genre(0))
-    #        _genre.append(" masculin"); # Peut-être mieux d'utiliser Flexion.genres[0] ?
-        if _indMorph.contains(" f."):
-            _genre.append(" " + _lemmatiseur.genre(1))
-    #        _genre.append(" féminin")
-        if _indMorph.contains(" n."):
-            _genre.append(" " + _lemmatiseur.genre(2))
-    #        _genre.append(" neutre")
-        _genre = _genre.trimmed()
-    '''
+        self._nbOcc = int(eclats[5])
 
 
     '''*
@@ -124,16 +113,12 @@ class Lemme(object):
         # des morphos irrégulières du lemme :
         if irr.exclusif()) _morphosIrrExcl.append(irr.morphos():
 
-
-    '''*
-     * \fn void Lemme.ajNombre(int n)
-     * \brief Ajoute l'entier n au nombre d'occurrences du lemme.
-     *
-     *      Un lemme de Collatinus peut être associé à plusieurs lemmes du LASLA.
-     *      D'où la somme.
-     '''
     def ajNombre(self, n):
-        _nbOcc += n
+        """ Ajoute l'entier n au nombre d'occurrences du lemme.
+
+        :note: Un lemme de Collatinus peut être associé à plusieurs lemmes du LASLA, d'où la somme.
+        """
+        self._nbOcc += n
         # Un lemme de Collatinus peut être associé à plusieurs lemmes du LASLA.
         # D'où la somme.
 
@@ -146,67 +131,37 @@ class Lemme(object):
     def ajRadical(self, i, *r):
         _radicaux[i].append(r)
 
-
-    '''*
-     * \fn void Lemme.ajTrad (QString t, l)
-     * \brief ajoute la traduction t de langue l à
-     *        la map des traductions du lemme.
-     '''
     def ajTrad(self, t, l):
-    #    if _traduction.contains(l) and _traduction[l] != "":
-    #        qDebug() << _grq << t << l << _traduction[l]
-        _traduction[l] = t
+        """ Ajoute la traduction t de langue l à la map des traductions du lemme."""
+        pass
 
-
-    '''*
-     * \fn QString Lemme.ambrogio()
-     * \brief Renvoie dans une chaîne un résumé
-     *        de la traduction du lemme dans toutes les
-     *        langues cibles disponibles.
-     '''
     def ambrogio(self):
-        QString retour
-        QTextStream ss(&retour)
-        ss << "<hr/>" << humain() << "<br/>"
-        ss << "<table>"
-        for lang in _traduction.keys():
-            trad = _traduction[lang]
-            langue = _lemmatiseur.cibles()[lang]
-            if not trad.isEmpty():
-                ss << "<tr><td>- " << langue << "</td><td>&nbsp;" << trad
-                   << "</td></tr>\n"
+        """ Renvoie dans une chaîne un résumé de la traduction du lemme dans toutes les langues cibles disponibles."""
+        pass
 
-        ss << "</table>"
-        return retour
-
-
-    '''*
-     * \fn QString Lemme.cle ()
-     * \brief Renvoie la clé sous laquel le
-     *        lemme est enregistré dans le lemmatiseur parent.
-     '''
     def cle(self):
-        return _cle
+        """ Renvoie la clé sous laquel le lemme est enregistré dans le lemmatiseur parent.
+
+        :return:
+        :rtype:
+        """
+        return self._cle
 
 
-    '''*
-     * \fn QList<int> Lemme.clesR ()
-     * \brief Retourne toutes les clés (formes non-ramistes
-     *        sans diacritiques) de la map des radicaux du lemme.
-     '''
     def clesR(self):
-        return _radicaux.keys()
+        """ Retourne toutes les clés (formes non-ramistes sans diacritiques) de la map des radicaux du lemme.
+        """
+        return self._radicaux.keys()
 
 
-    '''*
-     * \fn bool Lemme.estIrregExcl (int nm)
-     * \param nm : numéro de morpho
-     * \brief Renvoie vrai si la forme irrégulière
-     *        avec le n° nm remplace celle construite
-     *        sur le radical , si la
-     *        forme régulière existe aussi.
-     '''
     def estIrregExcl(self, nm):
+        """ Renvoie vrai si la forme irrégulière avec le n° nm remplace celle construite sur le radical , si la forme régulière existe aussi.
+
+        :param nm: Numéro de morpho
+        :type nm: int
+        :return: Statut de forme irrégulière
+        :rtype: bool
+        """
         return _morphosIrrExcl.contains(nm)
 
 
@@ -222,242 +177,179 @@ class Lemme(object):
      *
      '''
     def genre(self):
-        QString _genre
-        if _indMorph.contains(" m."):
-            _genre.append(" " + _lemmatiseur.genre(0))
-    # J'ai ainsi le genre dans la langue choisie.
-        if _indMorph.contains(" f."):
-            _genre.append(" " + _lemmatiseur.genre(1))
-    #        _genre.append(" féminin")
-        if _indMorph.contains(" n."):
-            _genre.append(" " + _lemmatiseur.genre(2))
-    #        _genre.append(" neutre")
-        _genre = _genre.trimmed()
-        if not _renvoi.isEmpty() and _genre.isEmpty():
-            Lemme *lr = _lemmatiseur.lemme(_renvoi)
-            if lr != NULL) return lr.genre(:
+        """ Cette routine convertit les indications morphologiques, données dans le fichier lemmes.la, pour exprimer le genre du mot dans la langue courante.
+
+        :return: Genre
+        :rtype: str
+        """
+        _genre = ""
+        if " m." in self._indMorph:
+            _genre += "m"
+        if " f." in self._indMorph:
+            _genre += "f"
+        if " n." in self._indMorph:
+            _genre += "n"
+        _genre = _genre.strip()
+        if self._renvoi and not _genre:
+            lr = self._lemmatiseur.lemme(_renvoi)
+            if lr:
+                return lr.genre():
 
         return _genre
 
 
-    '''*
-     * \fn return _gr
-     * \brief Retourne la graphie ramiste du lemme sans diacritiques.
-     '''
     def gr(self):
-        return _gr
+        """ Retourne la graphie ramiste du lemme sans diacritiques.
+
+        :return: Graphie ramiste du lemme sans diacritiques.
+        :rtype: str
+        """
+        return self._gr
 
 
-    '''*
-     * \fn QString Lemme.grq ()
-     * \brief Retourne la graphie ramiste du lemme sans diacritiques.
-     '''
     def grq(self):
-        return _grq
+        """ Retourne la graphie ramiste du lemme sans diacritiques.
 
+        :return: Graphie ramiste du lemme sans diacritiques.
+        :rtype: str
+        """
+        return self._grq
 
-    '''*
-     * \fn QString Lemme.grModele ()
-     * \brief Retourne la graphie du modèle du lemme.
-     '''
     def grModele(self):
-        return _grModele
+        """ Retourne la graphie du modèle du lemme.
 
-
-    '''*
-     * \fn QString Lemme.humain (bool html, l)
-     * \brief Retourne une chaîne donnant le lemme ramiste avec diacritiques,
-     *        ses indications morphologiques et sa traduction dans la langue l.
-     *        Si html est True, retour est au format html.
-     '''
-    def humain(self, html, l, nbr):
-        QString res
-        QString tr
-        if not _renvoi.isEmpty():
-            Lemme *lr = _lemmatiseur.lemme(_renvoi)
-            if lr != 0:
-                tr = lr.traduction(l)
-            else:
-                tr = "renvoi non trouvé"
-
-        else:
-            tr = traduction(l)
-        QTextStream flux(&res)
-        grq = _grq
-        if grq.contains(","):
-            grq.replace(",",", ")
-            grq.replace("  "," ")
-
-        if html:
-            flux << "<strong>" << grq << "</strong>, "
-                              << "<em>" << _indMorph << "</em>"
-        else:
-            flux << grq << ", " << _indMorph
-        if (_nbOcc != 1) and nbr:
-            if html:
-                flux << " <small>(" << _nbOcc << ")</small>"
-            else flux << " (" << _nbOcc << ")"
-
-        flux << " : " << tr
-        return res
-
+        :return: Graphie du modèle du lemme.
+        :rtype: ???
+        """
+        return self._grModele
 
     def indMorph(self):
-        return _indMorph
+        """ Returne l'index de morphologie
+        """
+        return self._indMorph
 
 
-    '''*
-     * \fn QString Lemme.irreg (int i, *excl)
-     * \brief Renvoie la forme irrégulière de morpho i. excl devient
-     *        True si elle est exclusive, sinon.
-     '''
-    def irreg(self, i, *excl):
-        foreach (Irreg *ir, _irregs)
-            if ir.morphos().contains(i):
-                *excl = ir.exclusif :
-                return ir.grq()
+    def irreg(self, i):
+        """ Renvoie la forme irrégulière de morpho i. excl devient True si elle est exclusive, sinon.
+
+        :return: Forme irrégulière de morpho i, Exclusivité
+        :rtype: tuple.<str, bool>
+        """
+        excl = False
+        for ir in self._irregs
+            if i in ir.morphos():
+                return ir.grq(), ir.exclusif
+        return "", excl
 
 
-        return ""
+    def modele(self)
+        """ Renvoie l'objet modèle du lemme.
 
+        :return: Modèle du lemme
+        :rtype: collatinus.modele.Modele
+        """
+        return self._modele
 
-    '''*
-     * \fn Modele* Lemme.modele ()
-     * \brief Renvoie l'objet modèle du lemme.
-     '''
-    Modele *Lemme.modele()
-        return _modele
-
-
-    '''*
-     * \fn int Lemme.nbOcc()
-     * \brief Renvoie le nombre d'occurrences du lemme dans les textes du LASLA.
-     '''
     def nbOcc(self):
-        return _nbOcc
+        """ Renvoie le nombre d'occurrences du lemme dans les textes du LASLA.
 
+        :return: Nombre d'occurrences du lemme dans les textes du LASLA.
+        :rtype: int
+        """
+        return self._nbOcc
 
-    '''*
-     * @brief Lemme.clearOcc
-     * Initialise le nombre d'occurrences.
-     '''
     def clearOcc(self):
-        _nbOcc = 1
+        """ Initialise le nombre d'occurrences. """
+        self._nbOcc = 1
 
-
-    '''*
-     * \fn int Lemme.nh()
-     * \brief Renvoie le numéro d'homonymie du lemme.
-     '''
     def nh(self):
-        return _nh
+        """ Renvoie le numéro d'homonymie du lemme.
 
+        :return: Numéro d'homonymie du lemme.
+        :rtype: int
+        """
+        return self._nh
 
-    '''*
-     * \fn int Lemme.origin()
-     * \brief Renvoie l'origine du lemme : 0 pour le lexique de base, pour l'extension.
-     '''
     def origin(self):
-        return _origin
+        """ Renvoie l'origine du lemme : 0 pour le lexique de base, pour l'extension. 
 
+        :return: Origine du lemme : 0 pour le lexique de base, pour l'extension. 
+        :rtype: int
+        """
+        return self._origin
 
-    '''*
-     * \fn QString Lemme.oteNh (QString g, &nh)
-     * \brief Supprime le dernier caractère de g si c'est
-     *        un nombre et revoie le résultat après avoir
-     *        donné la valeur de ce nombre à nh.
-     '''
-    def oteNh(self, g, &nh):
-        c = g.right(1).toInt()
+    def oteNh(self, g):
+        """ Supprime le dernier caractère de g si c'est un nombre et renvoie le résultat après avoir donné la valeur de ce nombre à nh.
+        """
+
+        c = int(g[1:])
         if c > 0:
-            nh = c
-            g.chop(1)
-
+            self._nh = c
+            g = g[:-1]
         else:
             c = 1
         return g
 
-
-    '''*
-     * \fn QString Lemme.pos ()
-     * \brief Renvoie un caractère représentant la
-     *        catégorie (part of speech, orationis)
-     *        du lemme.
-     '''
     def pos(self):
-        if _pos.isEmpty() and not _renvoi.isEmpty():
-            Lemme *lr = _lemmatiseur.lemme(_renvoi)
-            if lr != NULL) return lr.pos(:
+        """ Renvoie un caractère représentant la catégorie (part of speech, orationis) du lemme.
 
+        :return: Caractère représentant la catégorie (part of speech, orationis) du lemme.
+        :rtype: str
+        """
+        if not self_pos and self._renvoi:
+            lr = self._lemmatiseur.lemme(self._renvoi)
+            if lr:
+                return lr.pos():
         return _pos
 
+    def radical(self, r):
+        """  Renvoie le radical numéro r du lemme.
+        
+        :param r: Numéro de radical
+        :type r: int
+        :return: Radical numéro R
+        :rtype: Radical
+        """
+        return self._radicaux[r]
 
-    '''*
-     * \fn QList<Radical*> Lemme.radical (int r)
-     * \brief Renvoie le radical numéro r du lemme.
-     '''
-    QList<Radical *> Lemme.radical(int r)
-        return _radicaux.value(r)
 
+    def renvoi(self):
+        """ Renvoie True si le lemme est une forme alternative renvoyant à une autre entrée du lexique.
 
-    '''*
-     * \fn bool Lemme.renvoi()
-     * \brief Renvoie True si le lemme est une forme
-     *        alternative renvoyant à une autre entrée
-     *        du lexique.
-     '''
-    bool Lemme.renvoi() { return _indMorph.contains("cf. ");
-    '''*
-     * \fn QString Lemme.traduction(QString l)
-     * \brief Renvoie la traduction du lemme dans la langue
-     *        cible l (2 caractères, plus
-     *        pour donner l'ordre des langues de secours).
-     *        J'ai opté pour un format "l1.l2.l3" où
-     *        les trois langues sont en 2 caractères.
-     '''
+        :return: Statut forme alternative renvoyant à une autre entrée du lexique
+        :rtype: bool
+        """
+        return "cf. " in self._indMorph
+
     def traduction(self, l):
-        if l.size() == 2:
-        if _traduction.keys().contains(l):
-            return _traduction[l]
-        elif _traduction.keys().contains("fr"):
-            return _traduction["fr"]
-        else return _traduction["en"]
-
-        elif _traduction.keys().contains(l.mid(0,2)):
-            return _traduction[l.mid(0,2)]
-        elif _traduction.keys().contains(l.mid(3,2)):
-            return _traduction[l.mid(3,2)]
-        elif (l.size() == 8) and _traduction.keys().contains(l.mid(6,2)):
-            return _traduction[l.mid(6,2)]
-        return "non traduit / Translation not available."
+        """ Renvoie la traduction du lemme dans la langue cible l (2 caractères, plus
+         pour donner l'ordre des langues de secours). J'ai opté pour un format "l1.l2.l3" où les trois langues sont en 2 caractères.
+        """
+        pass
 
 
-    '''*
-     * \fn bool Lemme.operator<(Lemme &l)
-     * \brief vrai si la fréquence du lemme de gauche est
-     *        inférieure à celle de celui de droite.
-     *        commenté : vrai si la graphie du lemme de gauche
-     *        précède celle de celui de droite dans
-     *        l'ordre alphabétique.
-     '''
-    bool Lemme.operator<( Lemme &l)
-        #qDebug()<<"operator<"<<_gr
-        return _nbOcc < l.nbOcc()
-        #return _gr < l.gr()
+    def __lt__(self, l):
+        """ Vrai si la fréquence du lemme de gauche est inférieure à celle de celui de droite. 
 
+        commenté : vrai si la graphie du lemme de gauche précède celle de celui de droite dans l'ordre alphabétique.
+        :param l: Other lemma
+        :type l: Lemme
+        :return: Fréquence du lemme de gauche est inférieure à celle de celui de droite. 
+        :rtype: Bool
+        """
+        return self._nbOcc < l.nbOcc()
 
-    '''*
-     * @brief Lemme.setHyphen
-     * @param h : indique où se fait la césure.
-     * \brief stocke l'information sur la césure étymologique du lemme
-     '''
     def setHyphen(self, h):
-        _hyphen = h
+        """ Stocke l'information sur la césure étymologique du lemme
 
+        :param h: indique où se fait la césure. 
+        :type h: int
+        """
+        self._hyphen = h
 
-    '''*
-     * @brief Lemme.getHyphen
-     * @return la césure étymologique du lemme
-     '''
     def getHyphen(self):
-        return _hyphen
+        """ Retourne la césure étymologique du lemme
+
+        :return: Césure étymologique du lemme
+        """
+        return self._hyphen

@@ -1,8 +1,8 @@
 from .ch import estRomain
 
 class Lemmatiseur(object):
-	def __init__(self):
-		pass
+    def __init__(self):
+        pass
 
     def lemmatise(self, f):
         result = []
