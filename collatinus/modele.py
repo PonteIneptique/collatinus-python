@@ -5,6 +5,9 @@ from .util import DefaultOrderedDict, flatten
 
 
 class Desinence(object):
+    def __repr__(self):
+        return "<collatinus.modele.Desinence[{};{};{}]>".format(self.gr(), self.morphoNum(), self.numRad())
+
     def __init__(self, d, morph, nr, parent=None):
         """ Desinence
 
@@ -107,6 +110,9 @@ class Modele(object):
             "abs+",    # 8
     ]
 
+    def __repr__(self):
+        return "<collatinus.modele.Modele[{}]>".format(self.gr())
+
     def __init__(self, ll, parent=None):
         """ Constructeur de la classe modèle. 
 
@@ -129,7 +135,6 @@ class Modele(object):
         self._gr = ""
         self._grq = ""
 
-        print(ll)
         for original_l in ll:
             # remplacement des variables par leur valeur
             l = "" + original_l
@@ -150,31 +155,30 @@ class Modele(object):
             if p == 0:  # modèle
                 self._gr = eclats[1]
             elif p == 1:  # père
-                self._pere = parent.modele(eclats[1])
+                self._pere = self._lemmatiseur.modele(eclats[1])
+                print(self._pere)
             elif p == 2 or p == 3:
                 # des+: désinences s'ajoutant à celles du père
                 # des: désinences écrasant celles du père
-                li = Modele.listeI(eclats[1])
-                r = int(eclats[2])
-                ld = eclats[3].split(';')
-                for i in range(len(li)):
-                    if i < len(ld):
-                        ldd = ld[i].split(',')
+                index_morphologies = Modele.listeI(eclats[1])  # Anciennement li
+                radical = int(eclats[2])  # Anciennement "r"
+                liste_desinences = eclats[3].split(';')  # Anciennement "ld"
+                for i in range(len(index_morphologies)):
+                    if i < len(liste_desinences):
+                        liste_desinences_definitives = liste_desinences[i].split(',')  # Anciennement "ldd"
                     else:
-                        ldd = ld[-1].split(',')
+                        liste_desinences_definitives = liste_desinences[-1].split(',')
 
-                    for g in ldd:
-                        nd = Desinence(g, li[i], r, self)
+                    for graphie in liste_desinences_definitives:
+                        nd = Desinence(graphie, index_morphologies[i], nr=radical, parent=self)
                         self._desinences[nd.morphoNum()].append(nd)
                         self._lemmatiseur.ajDesinence(nd)
 
                 # si des+, chercher les autres désinences chez le père :
                 if p == 3:
-                    for i in li:
-                        ldp = self._pere.desinences(i)  # Liste de desinences au numéro i
-                        for dp in ldp:
-                            # cloner la désinece
-                            dh = self.clone(dp)
+                    for i in index_morphologies:
+                        for dp in self._pere.desinences(i):
+                            dh = self.clone(dp)  # cloner la désinece
                             self._desinences[i].append(dh)
                             self._lemmatiseur.ajDesinence(dh)
 
@@ -182,7 +186,7 @@ class Modele(object):
                 nr = int(eclats[1])
                 self._genRadicaux[nr] = eclats[2]
             elif p == 8:  # abs+
-                self._absents.append(Modele.listeI(eclats[1]))
+                self._absents += Modele.listeI(eclats[1])
             elif p == 5:  # abs
                 self._absents = Modele.listeI(eclats[1])
             elif p == 6:  # suffixes suf:<intervalle>:valeur
@@ -219,6 +223,7 @@ class Modele(object):
                     self._lemmatiseur.ajDesinence(dh)
 
             # héritage des radicaux
+            print(self._desinences)
             for numRad in set([d.numRad() for d in flatten(self._desinences.values())]):
                 print(numRad, self._genRadicaux, self._pere._genRadicaux)
                 if numRad not in self._genRadicaux:

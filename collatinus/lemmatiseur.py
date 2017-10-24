@@ -54,7 +54,6 @@ class Lemmatiseur(object):
         """ Charge et définit les débuts de mots non-assimilés, associe à chacun sa forme assimilée.
         """
         for lin in lignesFichier(self.path("assimilations.la")):
-            return
             ass1, ass2 = tuple(lin.split(':'))
             self._assims[ass1] = ass2
             self._assimsq[atone(ass1)] = atone(ass2)
