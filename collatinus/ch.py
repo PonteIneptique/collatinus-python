@@ -12,6 +12,8 @@ abrev = [
 
 
 _SIMPLIFIED_RE = re.compile("\s+")
+
+
 def simplified(string):
     """ Remove multiple spaces and strip a string
 
@@ -21,7 +23,6 @@ def simplified(string):
     :rtype: str
     """
     return _SIMPLIFIED_RE.sub(" ", string).strip()
-
 
 
 def atone(string, caps=True):
@@ -34,7 +35,7 @@ def atone(string, caps=True):
     :return: Chaîne nettoyée
     :rtype: str
     """
-    a = a.replace(0x0101, 'a') \
+    a = string.replace(0x0101, 'a') \
         .replace(0x0103, 'a') \
         .replace(0x0113, 'e') \
         .replace(0x0115, 'e') \
@@ -66,6 +67,7 @@ def atone(string, caps=True):
             .replace(0x040e, 'Y')
     return a
 
+
 def communes(g):
     """ Note comme communes toutes les voyelles qui ne portent pas de quantité.
 
@@ -92,7 +94,9 @@ def communes(g):
 
     return g
 
+
 _ROMAIN_REGEXP = re.compile("[^IVXLCDM]")
+
 
 def estRomain(f):
     """ F est-elle une forme de nombre romain ?
@@ -102,7 +106,7 @@ def estRomain(f):
     :return: Statut de nombre romain
     :type: bool
     """
-    return not (ROMAIN_REGEXP.match(f) or "IL" in f or "IVI" in f)
+    return not (_ROMAIN_REGEXP.match(f) or "IL" in f or "IVI" in f)
 
 
 def deramise(r):
@@ -121,7 +125,8 @@ def deramise(r):
             .replace("œ", "oe") \
             .replace("Œ", "Oe") \
             .replace(0x1ee5, 'u') \
-            .replace ('V', 'U')
+            .replace('V', 'U')
+
 
 def allonge(f):
     """ Modifie f pour que sa dernière voyelle devienne longue.

@@ -30,8 +30,7 @@ class Radical(object):
         :return: raphie du radical pourvue de ѕes diacritiques.
         :rtype: str
         """
-        return _grq
-
+        return self._grq
 
     def lemme(self):
         """ Le lemme auquel appartient le radical.
@@ -39,7 +38,7 @@ class Radical(object):
         :return: Le lemme auquel appartient le radical.
         :rtype: Lemme
         """
-        return self._lemme;
+        return self._lemme
 
     def modele(self):
         """ Le modèle de flexion du radical
@@ -47,7 +46,7 @@ class Radical(object):
         :return: Le modèle de flexion du radical
         :rtype: str
         """
-        return self._lemme.modele();
+        return self._lemme.modele()
 
     def numRad(self):
         """ Le numéro du radical.
@@ -55,4 +54,4 @@ class Radical(object):
         :return: Le numéro du radical.
         :rtype: int
         """
-        return self._numero;
+        return self._numero

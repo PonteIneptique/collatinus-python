@@ -1,11 +1,13 @@
-from . import Lemmatiseur
+from .rad import Radical
 from .ch import atone, deramise
 import warnings
 import re
 
+
 class Lemme(object):
     RENVOI = re.compile("cf\\.\\s(\\w+)$")
-    def __init__(self, linea, origin, *parent):
+
+    def __init__(self, linea, origin, parent):
         """ Constructeur de la classe Lemme à partire de la ligne linea.
             *parent est le lemmatiseur (classe Lemmat).
 
@@ -18,7 +20,7 @@ class Lemme(object):
         :param origin: NO FUCKING IDEA
         :type origin: ?
         :param parent: Lemmatiseur
-        :type parent: Lemmatiseur
+        :type parent: collatinus.Lemmatiseur
         """
         self._lemmatiseur = parent
 
@@ -29,15 +31,15 @@ class Lemme(object):
         self._nh = None
         self._grd = self.oteNh(lg[0])  # TODO: Cette ligne pose un problè : d'ou vient le _nh
 
-        if lg.count() == 1:
-            self._grq = _grd
+        if len(lg) == 1:
+            self._grq = self._grd
         else:
-            self._grq = lg.at(1)
+            self._grq = lg[1]
 
         # pour l'affichage des dictionnaires, élimine les doubles de la forme canonique
-        self._gr = atone(_grq.section(',',0,0))
+        self._gr = atone(self._grq.split(",")[0]) ## TODO : À verifier
         self._grModele = eclats[1]
-        self._modele = _lemmatiseur.modele(_grModele)
+        self._modele = self._lemmatiseur.modele(self._grModele)
         self._hyphen = ""
         self._origin = origin
 
@@ -46,22 +48,22 @@ class Lemme(object):
 
         # contrôle de format. la liste doit avoir 6 items
         if len(eclats) < 6:
-            warnings.warn("Ligne mal formée : " + self._gr + "\n ---Dernier champ " + eclats[-1] + "\n ---" +linea
+            warnings.warn("Ligne mal formée : " + self._gr + "\n ---Dernier champ " + eclats[-1] + "\n ---" +linea)
 
         # lecture des radicaux, 2 et 3
         for i in range(2, 4):
             if eclats[i]:
                 lrad = eclats[i].split(',')
                 for rad in lrad:
-                    _radicaux[i-1].append(new Radical(rad, i-1, self))
+                    self._radicaux[i-1].append(Radical(rad, i-1, self))
 
         self._lemmatiseur.ajRadicaux(self)
 
         # Gros doute sur le fonctionnement ici
         self._indMorph = eclats[4]
-        pos = RENVOI.find(self._indMorph)
+        pos = Lemme.RENVOI.find(self._indMorph)
         if pos > -1:
-            self._renvoi = c.group(1)
+            self._renvoi = c.group(1)  # TODO: WTF IS "c" ?
         else:
             self._renvoi = ""
 
@@ -98,20 +100,21 @@ class Lemme(object):
         # nombre d'occurrences
         self._nbOcc = int(eclats[5])
 
+    def ajIrreg(self, irr):
+        """ Ajoute au lemme l'obet irr, représente
+                 une forme irrégulière. Lorsque les formes irrégulières
+                 sont trop nombreuses, lorsque plusieurs lemmes
+                 ont des formes analogues, vaut ajouter un modèle
+                 dans data/modeles.la.
 
-    '''*
-     * \fn void Lemme.ajIrreg (Irreg *irr)
-     * \brief Ajoute au lemme l'obet irr, représente
-     *        une forme irrégulière. Lorsque les formes irrégulières
-     *        sont trop nombreuses, lorsque plusieurs lemmes
-     *        ont des formes analogues, vaut ajouter un modèle
-     *        dans data/modeles.la.
-     '''
-    def ajIrreg(self, *irr):
-        _irregs.append(irr)
+        :param irr: Irrégulier
+        :type irr: collatinus.irregs.Irreg
+        """
+        self._irregs.append(irr)
         # ajouter les numéros de morpho à la liste
         # des morphos irrégulières du lemme :
-        if irr.exclusif()) _morphosIrrExcl.append(irr.morphos():
+        if irr.exclusif():
+            self._morphosIrrExcl += irr.morphos()
 
     def ajNombre(self, n):
         """ Ajoute l'entier n au nombre d'occurrences du lemme.
@@ -122,14 +125,16 @@ class Lemme(object):
         # Un lemme de Collatinus peut être associé à plusieurs lemmes du LASLA.
         # D'où la somme.
 
+    def ajRadical(self, i, r=None):
+        """ Ajoute le radical r de numéro i à la map des radicaux du lemme.
 
-    '''*
-     * \fn void Lemme.ajRadical (int i, r)
-     * \brief Ajoute le radical r de numéro i à la map des
-     *        radicaux du lemme.
-     '''
-    def ajRadical(self, i, *r):
-        _radicaux[i].append(r)
+        :param i: Index de radical
+        :type i: int
+        :param r: Radical à ajouter
+        :type r: Radical
+        """
+        if r:
+            self._radicaux[i].append(r)
 
     def ajTrad(self, t, l):
         """ Ajoute la traduction t de langue l à la map des traductions du lemme."""
@@ -147,12 +152,10 @@ class Lemme(object):
         """
         return self._cle
 
-
     def clesR(self):
         """ Retourne toutes les clés (formes non-ramistes sans diacritiques) de la map des radicaux du lemme.
         """
         return self._radicaux.keys()
-
 
     def estIrregExcl(self, nm):
         """ Renvoie vrai si la forme irrégulière avec le n° nm remplace celle construite sur le radical , si la forme régulière existe aussi.
@@ -162,20 +165,8 @@ class Lemme(object):
         :return: Statut de forme irrégulière
         :rtype: bool
         """
-        return _morphosIrrExcl.contains(nm)
+        return nm in self._morphosIrrExcl
 
-
-    '''*
-     * @brief Lemme.genre
-     * @return : le (ou les) genre(s) du mot.
-     *
-     * Cette routine convertit les indications morphologiques,
-     * données dans le fichier lemmes.la,
-     * pour exprimer le genre du mot dans la langue courante.
-     *
-     * Introduite pour assurer l'accord entre un nom et son adjectif.
-     *
-     '''
     def genre(self):
         """ Cette routine convertit les indications morphologiques, données dans le fichier lemmes.la, pour exprimer le genre du mot dans la langue courante.
 
@@ -191,12 +182,11 @@ class Lemme(object):
             _genre += "n"
         _genre = _genre.strip()
         if self._renvoi and not _genre:
-            lr = self._lemmatiseur.lemme(_renvoi)
+            lr = self._lemmatiseur.lemme(self._renvoi)
             if lr:
-                return lr.genre():
+                return lr.genre()
 
         return _genre
-
 
     def gr(self):
         """ Retourne la graphie ramiste du lemme sans diacritiques.
@@ -205,7 +195,6 @@ class Lemme(object):
         :rtype: str
         """
         return self._gr
-
 
     def grq(self):
         """ Retourne la graphie ramiste du lemme sans diacritiques.
@@ -228,7 +217,6 @@ class Lemme(object):
         """
         return self._indMorph
 
-
     def irreg(self, i):
         """ Renvoie la forme irrégulière de morpho i. excl devient True si elle est exclusive, sinon.
 
@@ -236,13 +224,12 @@ class Lemme(object):
         :rtype: tuple.<str, bool>
         """
         excl = False
-        for ir in self._irregs
+        for ir in self._irregs:
             if i in ir.morphos():
                 return ir.grq(), ir.exclusif
         return "", excl
 
-
-    def modele(self)
+    def modele(self):
         """ Renvoie l'objet modèle du lemme.
 
         :return: Modèle du lemme
@@ -296,11 +283,11 @@ class Lemme(object):
         :return: Caractère représentant la catégorie (part of speech, orationis) du lemme.
         :rtype: str
         """
-        if not self_pos and self._renvoi:
+        if not self._pos and self._renvoi:
             lr = self._lemmatiseur.lemme(self._renvoi)
             if lr:
-                return lr.pos():
-        return _pos
+                return lr.pos()
+        return self._pos
 
     def radical(self, r):
         """  Renvoie le radical numéro r du lemme.
@@ -311,7 +298,6 @@ class Lemme(object):
         :rtype: Radical
         """
         return self._radicaux[r]
-
 
     def renvoi(self):
         """ Renvoie True si le lemme est une forme alternative renvoyant à une autre entrée du lexique.
@@ -327,11 +313,11 @@ class Lemme(object):
         """
         pass
 
-
     def __lt__(self, l):
         """ Vrai si la fréquence du lemme de gauche est inférieure à celle de celui de droite. 
 
         commenté : vrai si la graphie du lemme de gauche précède celle de celui de droite dans l'ordre alphabétique.
+
         :param l: Other lemma
         :type l: Lemme
         :return: Fréquence du lemme de gauche est inférieure à celle de celui de droite. 

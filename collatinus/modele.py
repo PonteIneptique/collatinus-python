@@ -1,7 +1,8 @@
 import re
 import warnings
-from .ch import simplified, allonge
+from .ch import simplified, allonge, atone
 from .util import DefaultOrderedDict
+
 
 class Desinence(object):
     def __init__(self, d, morph, nr, parent=None):
@@ -33,7 +34,7 @@ class Desinence(object):
         if d == "-":
             d = ""
         self._grq = d
-        self._gr = atone(_grq)
+        self._gr = atone(self._grq)
         self._morpho = morph
         self._numR = nr
         self._modele = parent
@@ -97,6 +98,7 @@ class Desinence(object):
         """
         self._modele = m
 
+
 class Modele(object):
     RE = re.compile("[:;]([\\w]*)\\+{0,1}(\\$\\w+)")
     CLEFS = [
@@ -136,10 +138,10 @@ class Modele(object):
             l = "" + original_l
 
             ## TODO : A REVOIR car assez compliqué
-            while (Modele.RE.indexIn(l) > -1)
+            while (Modele.RE.indexIn(l) > -1):
                 v = Modele.RE.cap(2)
-                var = _lemmatiseur.variable(v)
-                pre = MODELE.RE.cap(1)
+                var = self._lemmatiseur.variable(v)
+                pre = Modele.RE.cap(1)
                 if pre:
                     var = var.replace(";", ";") + pre
                 l = l.replace(v, var)
@@ -148,7 +150,7 @@ class Modele(object):
             # modele pere des des  R   abs
             #  0      1    2   3   4   5
 
-            p = MODELE.CLEFS.index(eclats[0])
+            p = Modele.CLEFS.index(eclats[0])
             if p == 0:  # modèle
                 self._gr = eclats[1]
             elif p == 1:  # père
@@ -175,7 +177,7 @@ class Modele(object):
                         ldp = self._pere.desinences(i) # Liste de desinences au numéro i
                         for dp in ldp:
                             # cloner la désinece
-                            h = self.clone(dp)
+                            dh = self.clone(dp)
                             self._desinences[i].append(dh)
                             self._lemmatiseur.ajDesinence(dh)
 
@@ -320,27 +322,16 @@ class Modele(object):
         """
         return m in self._desinences
 
-    
-    '''*
-     * \fn QList<Desinence*> Modele.desinences (int d)
-     * \brief 
-     '''
-    def desinences(self, d):
+    def desinences(self, d=None):
         """ Renvoie la liste des désinence de morpho d du modèle.
 
         :param d: Identifant de morphologie
         :type d: int
-        :return: Liste des désinence de morpho d du modèle.
+        :return: Liste des désinence de morpho d du modèle ou toutes les désinences du modèle (Applaties en python, doute sur original)
         :rtype: list of Desinence
         """
-        return self._desinences[d]
-
-    def desinences(self):
-        """ Renvoie toutes les désinences du modèle.
-
-        :return: toutes les désinences du modèle (Applaties en python, doute sur original)
-        :rtype: list of Desinence
-        """
+        if d:
+            return self._desinences[d]
         return [x for morpho_values in self._desinences.values() for x in morpho_values]
 
     def estUn(self, m):
@@ -357,14 +348,13 @@ class Modele(object):
             return False
         return self._pere.estUn(m)
 
-
     def gr(self):
         """ Nom du modèle
 
         :return: Nom du modèle.
         :rtype: str
         """
-        return _gr
+        return self._gr
 
     def genRadical(self, r):
         """ Chaîne permettant de calculer un radical à partir de la forme canonique d'un lemme. 
