@@ -1,5 +1,28 @@
 import re
 
+voyelles = "āăēĕīĭōŏūŭȳўĀĂĒĔĪĬŌŎŪŬȲЎ"
+consonnes = "bcdfgjklmnpqrstvxz"
+abrev = [
+    "Agr", "Ap", "A", "K", "D", "F", "C",
+    "Cn", "Kal", "L", "Mam", "M\"", "M", "N", "Oct",
+    "Opet", "Post", "Pro", "P", "Q", "Sert",
+    "Ser", "Sex", "S", "St", "Ti", "T", "V",
+    "Vol", "Vop", "Pl"
+]
+
+
+_SIMPLIFIED_RE = re.compile("\s+")
+def simplified(string):
+    """ Remove multiple spaces and strip a string
+
+    :param string: Chaîne à transformer
+    :type string: str
+    :return: Chaîne nettoyée
+    :rtype: str
+    """
+    return _SIMPLIFIED_RE.sub(" ", string).strip()
+
+
 
 def atone(string, caps=True):
     """ Supprimer les diacritiques de la forme donnée
@@ -99,3 +122,35 @@ def deramise(r):
             .replace("Œ", "Oe") \
             .replace(0x1ee5, 'u') \
             .replace ('V', 'U')
+
+def allonge(f):
+    """ Modifie f pour que sa dernière voyelle devienne longue.
+    
+    :param string: Chaîne à transformer
+    :type string: str
+    :return: Chaîne modifiée
+    :rtype: str
+    """
+    if not f:
+        return
+
+    return f
+
+    ## TODO : Implementer correctement la suite
+
+    taille = len(f)
+    # Je sais que le morceau à attacher commence par une consonne.
+    if f[taille-2] in consonnes and not f[-2:].lower() in ["āe", "āu", "ēu",  "ōe"]:
+        f = re.sub("[a\u0103]([" + consonnes + "])$", "\u0101\\1", f)
+        f = re.sub("[e\u0115]([" + consonnes + "])$", "\u0113\\1", f)
+        f = re.sub("[i\u012d]([" + consonnes + "])$", "\u012b\\1", f)
+        f = re.sub("[o\u014F]([" + consonnes + "])$", "\u014d\\1", f)
+        f = re.sub("[u\u016d]([" + consonnes + "])$", "\u016b\\1", f)
+        f = re.sub("[y\u0233]([" + consonnes + "])$", "\u045e\\1", f)
+        f = re.sub("[A\u0102]([" + consonnes + "])$", "\u0100\\1", f)
+        f = re.sub("[E\u0114]([" + consonnes + "])$", "\u0112\\1", f)
+        f = re.sub("[I\u012c]([" + consonnes + "])$", "\u012a\\1", f)
+        f = re.sub("[O\u014e]([" + consonnes + "])$", "\u014c\\1", f)
+        f = re.sub("[U\u016c]([" + consonnes + "])$", "\u016a\\1", f)
+        f = re.sub("[Y\u0232]([" + consonnes + "])$", "\u040e\\1", f)
+        return f

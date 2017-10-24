@@ -1,7 +1,7 @@
 from .ch import atone
 
 class Irreg(object):
-    def __init__(l, parent=None):
+    def __init__(self, l, parent=None):
         """ Constructeur de la classe Irreg.
 
         :param l: Clé de lemme dans le lemmatiseur
