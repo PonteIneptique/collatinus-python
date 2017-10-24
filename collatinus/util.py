@@ -41,5 +41,22 @@ class DefaultOrderedDict(OrderedDict):
                           copy.deepcopy(self.items()))
 
     def __repr__(self):
-        return 'OrderedDefaultDict(%s, %s)' % (self.default_factory,
-                                               OrderedDict.__repr__(self))
+        return 'OrderedDefaultDict(%s, %s)' % (self.default_factory, OrderedDict.__repr__(self))
+
+
+def lignesFichier(nf):
+    """ L'ensemble de lignes du fichier qui ne sont ni vides ni commentées.
+
+        * Les fichiers de Collatinus ont adopté le point d'exclamation
+        * en début de ligne pour introduire un commentaire.
+        * Ces lignes doivent être ignorées par le programme.
+
+    :param nf: Nom du fichier
+    :type nf: str
+    :yield: Ligne de fichier si ce n'est pas un commentaire
+    :ytype: str
+    """
+    with open(nf) as file:
+        for line in file.readlines():
+            if line and not line.startswith("!") and not line.startswith("! --- "):
+                yield line

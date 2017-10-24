@@ -1,1 +1,1 @@
-from .lemmatiseur import lemmatiseur
+from .lemmatiseur import Lemmatiseur

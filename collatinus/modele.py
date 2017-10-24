@@ -29,7 +29,6 @@ class Desinence(object):
             self._rarete = der
             d = d[:-1]
 
-        
         # '-' est la désinence zéro
         if d == "-":
             d = ""
@@ -38,7 +37,6 @@ class Desinence(object):
         self._morpho = morph
         self._numR = nr
         self._modele = parent
-
 
     def gr(self):
         """ Graphie de la désinence, et sans quantités.
@@ -56,7 +54,6 @@ class Desinence(object):
         """
         return self._grq
 
-
     def modele(self):
         """ Modèle de la désinence.
 
@@ -64,7 +61,6 @@ class Desinence(object):
         :rtype: Modele
         """
         return self._modele
-
 
     def rarete(self):
         """ Rareté de la désinence, est 10 par défaut.
@@ -100,17 +96,17 @@ class Desinence(object):
 
 
 class Modele(object):
-    RE = re.compile("[:;]([\\w]*)\\+{0,1}(\\$\\w+)")
+    RE = re.compile("[:;]*([\\w]*)\\+{0,1}(\\$\\w+)")
     CLEFS = [
             "modele",  # 0
-            "pere"  ,  # 1
-            "des"   ,  # 2
-            "des+"  ,  # 3
-            "R"     ,  # 4
-            "abs"   ,  # 5
-            "suf"   ,  # 6
-            "sufd"  ,  # 7
-            "abs+" ,  # 8
+            "pere",    # 1
+            "des",     # 2
+            "des+",    # 3
+            "R",       # 4
+            "abs",     # 5
+            "suf",     # 6
+            "sufd",    # 7
+            "abs+",    # 8
     ]
 
     def __init__(self, ll, parent=None):
@@ -128,6 +124,7 @@ class Modele(object):
         self._lemmatiseur = parent
         self._pere = 0
         self._desinences = DefaultOrderedDict(list)
+        self.msuff = DefaultOrderedDict(list)  # list of int
         self._absents = []  # List of int
         self._genRadicaux = {}
         self._gr = ""
@@ -137,13 +134,11 @@ class Modele(object):
             # remplacement des variables par leur valeur
             l = "" + original_l
 
-            ## TODO : A REVOIR car assez compliqué
-            while (Modele.RE.indexIn(l) > -1):
-                v = Modele.RE.cap(2)
+            # TODO : Ajouté * pour la premiere capture pour rendre le prefix optionnel...
+            for pre, v in Modele.RE.findall(l):
                 var = self._lemmatiseur.variable(v)
-                pre = Modele.RE.cap(1)
                 if pre:
-                    var = var.replace(";", ";") + pre
+                    var = var.replace(";", ";" + pre)
                 l = l.replace(v, var)
 
             eclats = simplified(l).split(":")
@@ -183,16 +178,16 @@ class Modele(object):
 
             elif p == 4:  # R:n: radical n
                 nr = int(eclats[1])
-                self._genRadicaux[nr] = eclats.at(2)
-            elif p == 8: # abs+
+                self._genRadicaux[nr] = eclats[2]
+            elif p == 8:  # abs+
                 self._absents.append(Modele.listeI(eclats[1]))
-            elif p == 5: # abs
+            elif p == 5:  # abs
                 self._absents = Modele.listeI(eclats[1])
             elif p == 6:  # suffixes suf:<intervalle>:valeur
                 lsuf = Modele.listeI(eclats[1])
                 gr = eclats[2]  # TODO verif : bien formée ?
                 for m in lsuf:
-                    msuff.insert(gr, m)
+                    self.msuff[gr].append(m)
             elif p == 7:  # sufd: les désinences du père, suffixées
                 if self._pere != 0:
                     suf = eclats[1]
@@ -215,7 +210,7 @@ class Modele(object):
                     continue
                 ld = self._pere.desinences(m)
                 for d in ld:
-                    if d.morphoNum() in self._absents: # morpho absente chez le descendant
+                    if d.morphoNum() in self._absents:  # morpho absente chez le descendant
                         continue
                     dh = self.clone(d)
                     self._desinences[dh.morphoNum()].append(dh)
@@ -232,17 +227,16 @@ class Modele(object):
 
         # génération des désinences suffixées
         ldsuf = []
-        clefsSuff = msuff.keys()
-        clefsSuff.removeDuplicates()
+        clefsSuff = set(list(self.msuff.keys()))
         for suff in clefsSuff:
             for d in self._desinences:
-                if d.morphoNum() in msuff[suff]:
+                if d.morphoNum() in self.msuff[suff]:
                     gq = d.grq()
                     if gq == "-":
                         gq.clear()
                     gq.append(suff)
                     dsuf = Desinence(gq, d.morphoNum(), d.numRad(), self)
-                    ldsuf.insert(dsuf.morphoNum(), dsuf)
+                    ldsuf.append(dsuf)
 
         for dsuf in ldsuf:
             self._desinences[dsuf.morphoNum()].append(dsuf)
@@ -268,9 +262,9 @@ class Modele(object):
         result = []
         lvirg = l.split(',')
         for virg in lvirg:
-            if virg.contains('-'):
+            if "-" in virg:
                 deb, fin = tuple(virg.split("-"))
-                result += [i for i in range(int(deb), int(fin))]
+                result += [i for i in range(int(deb), int(fin)+1)]
             else:
                 result.append(int(virg))
 
