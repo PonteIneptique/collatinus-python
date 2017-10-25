@@ -117,7 +117,7 @@ def allonge(f):
     :rtype: str
     """
     if not f:
-        return
+        return ""
 
     return f
 

@@ -2,6 +2,7 @@ import re
 import warnings
 from .ch import simplified, allonge, atone
 from .util import DefaultOrderedDict, flatten
+from .error import MissingRadical, UnknownModeleConfigurationKey
 
 
 class Desinence(object):
@@ -145,7 +146,6 @@ class Modele(object):
                 if pre:
                     var = var.replace(";", ";" + pre)
                 l = l.replace(v, var)
-            print("--", original_l, l)
 
             eclats = simplified(l).split(":")
             # modele pere des des  R   abs
@@ -156,7 +156,6 @@ class Modele(object):
                 self._gr = eclats[1]
             elif p == 1:  # père
                 self._pere = self._lemmatiseur.modele(eclats[1])
-                print(self._pere)
             elif p == 2 or p == 3:
                 # des+: désinences s'ajoutant à celles du père
                 # des: désinences écrasant celles du père
@@ -206,7 +205,7 @@ class Modele(object):
                         self._desinences[dsuf.morphoNum()].append(dsuf)
                         self._lemmatiseur.ajDesinence(dsuf)
             else:
-                warnings.warn("Modele : Erreur pour " + l)
+                warnings.warn("Modele : Erreur pour " + l, UnknownModeleConfigurationKey)
 
         # père
         if self._pere:
@@ -229,7 +228,7 @@ class Modele(object):
                         nr = self._pere.genRadical(numRad)
                         self._genRadicaux[numRad] = nr
                     else:
-                        warnings.warn(self.__repr__() + " has no radical {}".format(numRad))
+                        warnings.warn(self.__repr__() + " has no radical {}".format(numRad), MissingRadical)
 
             # héritage des absents
             self._absents = self._pere.absents()
@@ -238,12 +237,12 @@ class Modele(object):
         ldsuf = []
         clefsSuff = set(list(self.msuff.keys()))
         for suff in clefsSuff:
-            for d in self._desinences:
+            for d in flatten(self._desinences.values()):
                 if d.morphoNum() in self.msuff[suff]:
                     gq = d.grq()
                     if gq == "-":
-                        gq.clear()
-                    gq.append(suff)
+                        gq = ""
+                    gq += suff
                     dsuf = Desinence(gq, d.morphoNum(), d.numRad(), self)
                     ldsuf.append(dsuf)
 
