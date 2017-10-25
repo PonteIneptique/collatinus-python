@@ -272,7 +272,7 @@ class Lemmatiseur(object):
 
         for irr in self._irregs[form]:
             for m in irr.morphos():
-                result.append(Lemmatiseur.format_result(form=form, lemma=irr.grq(), morphos=self.morpho(m)))
+                result.append(Lemmatiseur.format_result(form=form, lemma=irr, morphos=self.morpho(m)))
 
         # radical + désinence
         for i in range(len(form)):
