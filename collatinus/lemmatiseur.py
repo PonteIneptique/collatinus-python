@@ -1,6 +1,6 @@
 from .ch import estRomain, deramise, atone
 from .util import DefaultOrderedDict, lignesFichier
-from .lemme import Lemme
+from .lemme import Lemme, Radical
 from .modele import Modele
 import os
 
@@ -42,6 +42,7 @@ class Lemmatiseur(object):
         self.ajAssims()
         self.ajContractions()
         self.ajModeles()  # Note : from lisModeles
+        self.ajLexiques()  # Note : from lisLexique
 
     def path(self, nf):
         """ Compute the path for the file to load
@@ -65,6 +66,22 @@ class Lemmatiseur(object):
             ass1, ass2 = tuple(lin.split(':'))
             self._contractions[ass1] = ass2
 
+    def lisFichierLexique(self, filepath):
+        """ Lecture des lemmes, et enregistrement de leurs radicaux
+
+        :param filepath: Chemin du fichier à charger
+        :type filepath: str
+        """
+        orig = int(filepath.endswith("ext.la"))
+        lignes = lignesFichier(filepath)
+        for lin in lignes:
+            lemma = Lemme(lin, origin=orig, parent=self)
+            self._lemmes[lemma.cle()] = lemma
+
+    def ajLexiques(self):
+        """ Lecture du fichier de lemmes de base """
+        self.lisFichierLexique(self.path("lemmes.la"))
+
     def ajModeles(self):
         """ Lecture des modèles, et enregistrement de leurs désinences
         """
@@ -84,6 +101,60 @@ class Lemmatiseur(object):
                 sl = []
 
             sl.append(l)
+
+    def modele(self, m):
+        """ Retrouve le modele pour la clef m
+
+        :param m: Nom du modele
+        :type m: str
+        :return: Modele trouvé
+        :rtype: Modele
+        """
+        return self._modeles[m]
+
+    def ajRadicaux(self, lemme):
+        """ Calcule tous les radicaux du lemme l,
+            *  en se servant des modèles, ajoute à ce lemme,
+            *  et ensuite à la map *  des radicaux de la classe Lemmat.
+
+        Ligne type de lemme
+        # ablŭo=ā̆blŭo|lego|ā̆blŭ|ā̆blūt|is, ere, lui, lutum
+        #      0        1    2    3         4
+
+        :param lemme: Lemme
+        :type lemme: Lemme
+        """
+        m = self.modele(lemme.grModele())
+        ''' insérer d'abord les radicaux définis dans lemmes.la
+        qui sont prioritaires '''
+        for i in lemme.clesR():
+            radical = lemme.radical(i)
+            self._radicaux[deramise(radical.gr())] = radicals
+
+        # pour chaque radical du modèle
+        for indice_radical in m.clesR():
+            # Si le radical a été défini par le lemme
+            if indice_radical in lemme.clesR():
+                continue
+            gs = lemme.grq().split(',')
+            for graphie in gs:
+                r = ""
+                gen = m.genRadical(indice_radical)
+                # si gen == 'K', radical est la forme canonique
+                if gen == "-":
+                    continue
+                if gen != "K":
+                    # sinon, la règle de formation du modèle
+                    oter, ajouter = tuple(gen.split(","))
+                    oter = int(oter)
+                    graphie = graphie[:-oter]
+                    if ajouter != "0":
+                        graphie += ajouter
+                r = Radical(graphie, indice_radical, lemme)
+
+            # Doute si cela n'appartient pas à graphe in gs
+            lemme.ajRadical(indice_radical, r)
+            self._radicaux[deramise(r.gr())] = r
 
     def ajDesinence(self, d):
         """ Ajoute la désinence d dans la map des désinences. """

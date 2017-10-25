@@ -4,7 +4,7 @@ import re
 
 
 class Radical(object):
-    def __init__(self, g, n, *parent):
+    def __init__(self, g, n, parent=None):
         """ Représentation d'un radical
 
         :param g: Forme canonique du radical avec quantité
@@ -12,7 +12,7 @@ class Radical(object):
         :param n: Numéro du radical
         :type n: int
         """
-        self._lemme = Lemme(parent)
+        self._lemme = parent
         self._grq = communes(g)
         self._gr = atone(g)
         self._numero = n
@@ -77,12 +77,13 @@ class Lemme(object):
         :type parent: collatinus.Lemmatiseur
         """
         self._lemmatiseur = parent
+        self._radicaux = {}
 
         eclats = linea.split('|')
         lg = eclats[0].split('=')
 
         self._cle = atone(deramise(lg[0]))
-        self._nh = None
+        self._nh = 0
         self._grd = self.oteNh(lg[0])  # TODO: Cette ligne pose un problè : d'ou vient le _nh
 
         if len(lg) == 1:
@@ -320,15 +321,19 @@ class Lemme(object):
         return self._origin
 
     def oteNh(self, g):
-        """ Supprime le dernier caractère de g si c'est un nombre et renvoie le résultat après avoir donné la valeur de ce nombre à nh.
+        """ Supprime le dernier caractère de g si c'est un nombre et
+        renvoie le résultat après avoir donné la valeur de ce nombre à nh.
+
+        :param g: Chaîne
+        :type g: str
+        :return: Chaîne sans le numéro
+        :rtype: str
         """
 
-        c = int(g[1:])
-        if c > 0:
-            self._nh = c
+        c = g[-1:]
+        if c.isnumeric():
+            self._nh = int(c)
             g = g[:-1]
-        else:
-            c = 1
         return g
 
     def pos(self):
