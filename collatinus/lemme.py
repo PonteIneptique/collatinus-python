@@ -1,6 +1,7 @@
 from .ch import atone, deramise, communes
 import warnings
 import re
+from .util import DefaultOrderedDict
 
 
 class Radical(object):
@@ -77,7 +78,7 @@ class Lemme(object):
         :type parent: collatinus.Lemmatiseur
         """
         self._lemmatiseur = parent
-        self._radicaux = {}
+        self._radicaux = DefaultOrderedDict(list)
 
         eclats = linea.split('|')
         lg = eclats[0].split('=')
@@ -116,9 +117,9 @@ class Lemme(object):
 
         # Gros doute sur le fonctionnement ici
         self._indMorph = eclats[4]
-        pos = Lemme.RENVOI.find(self._indMorph)
-        if pos > -1:
-            self._renvoi = c.group(1)  # TODO: WTF IS "c" ?
+        match_renvoi = Lemme.RENVOI.match(self._indMorph)
+        if match_renvoi is not None:
+            self._renvoi = match_renvoi.group(1)
         else:
             self._renvoi = ""
 
@@ -189,7 +190,7 @@ class Lemme(object):
         :type r: Radical
         """
         if r:
-            self._radicaux[i].append(r)
+            self._radicaux[i] = r
 
     def ajTrad(self, t, l):
         """ Ajoute la traduction t de langue l à la map des traductions du lemme."""

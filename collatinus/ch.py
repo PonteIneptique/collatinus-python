@@ -56,6 +56,8 @@ def communes(g):
     :return: Chaîne nettoyée
     :rtype: str
     """
+    if len(g) == 0:
+        return g
     maj = g[0].isupper()
     g = g.lower()
     if g.contains("a") or g.contains("e") or g.contains("i") or g.contains("o") or g.contains("u") or g.contains("y"):
