@@ -36,15 +36,14 @@ def atone(string, caps=True):
     :return: Chaîne nettoyée
     :rtype: str
     """
+    if caps is True:
+        return unidecode(string)
     a = ""
-    for chr in string:
-        if caps:
-            if chr.isupper():
-                a += unidecode(chr)
-            else:
-                a += chr
+    for char in string:
+        if char.isupper():
+            a += char
         else:
-            a += unidecode(chr)
+            a += unidecode(char)
     return a
 
 

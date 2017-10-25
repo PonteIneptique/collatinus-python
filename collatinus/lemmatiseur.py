@@ -1,8 +1,10 @@
 from .ch import estRomain, deramise, atone
-from .util import DefaultOrderedDict, lignesFichier
+from .util import DefaultOrderedDict, lignesFichier, flatten
 from .lemme import Lemme, Radical
+from .irregs import Irreg
 from .modele import Modele
 import os
+import warnings
 
 
 class Lemmatiseur(object):
@@ -27,7 +29,7 @@ class Lemmatiseur(object):
         self._radicaux = DefaultOrderedDict(list)  # List of Radicaux
         self._desinences = DefaultOrderedDict(list)  # List of Desinence
         self._irregs = DefaultOrderedDict(list)  # List of Irreg
-        self._morphos = DefaultOrderedDict(list)  # List of Strings
+        self._morphos = {"fr":{}}  # List of Strings
         self._cas = DefaultOrderedDict(list)  # List of Strings
         self._genres = DefaultOrderedDict(list)  # List of Strings
         self._nombres = DefaultOrderedDict(list)  # List of Strings
@@ -41,8 +43,10 @@ class Lemmatiseur(object):
     def load_from_pkg_data(self):
         self.ajAssims()
         self.ajContractions()
+        self.ajMorphos("fr")  # Note : from lisModeles
         self.ajModeles()  # Note : from lisModeles
         self.ajLexiques()  # Note : from lisLexique
+        self.ajIrreguliers()
 
     def path(self, nf):
         """ Compute the path for the file to load
@@ -50,6 +54,29 @@ class Lemmatiseur(object):
         :rtype: str
         """
         return os.path.join(self._resDir, nf)
+
+    def ajMorphos(self, lang="fr"):
+        for ligne in lignesFichier(self.path("morphos." + lang)):
+            if ":" not in ligne:
+                break
+            morph_id, morph_str = tuple(ligne.split(":"))
+            self._morphos[lang][int(morph_id)] = morph_str
+
+    def ajIrreguliers(self):
+        """ Chargement des formes irrégulières du fichier data/irregs.la
+        """
+        lignes = lignesFichier(self.path("irregs.la"))
+        for lin in lignes:
+            try:
+                irr = Irreg(lin, self)
+                self._irregs[deramise(irr.gr())].append(irr)
+            except Exception as E:
+                print(len(self._lemmes), list(self._lemmes.keys())[0:10])
+                warnings.warn("Erreur au chargement de l'irrégulier\n" + lin + "\n"+ str(E))
+                raise E
+
+        for irr in flatten(self._irregs.values()):
+            irr.lemme().ajIrreg(irr)
 
     def ajAssims(self):
         """ Charge et définit les débuts de mots non-assimilés, associe à chacun sa forme assimilée.
@@ -112,6 +139,16 @@ class Lemmatiseur(object):
         """
         return self._modeles[m]
 
+    def lemme(self, lemme):
+        """ Retrouve le lemme pour la clef lemme
+
+        :param lemme: Nom du lemme
+        :type lemme: str
+        :return: Lemme trouvé
+        :rtype: Lemme
+        """
+        return self._lemmes[lemme]
+
     def ajRadicaux(self, lemme):
         """ Calcule tous les radicaux du lemme l,
             *  en se servant des modèles, ajoute à ce lemme,
@@ -146,8 +183,12 @@ class Lemmatiseur(object):
                     continue
                 if gen != "K":
                     # sinon, la règle de formation du modèle
-                    oter, ajouter = tuple(gen.split(","))
-                    oter = int(oter)
+                    oter, ajouter = 0, "0"
+                    if "," in gen:
+                        oter, ajouter = tuple(gen.split(","))
+                        oter = int(oter)
+                    else:
+                        oter = int(gen)
                     graphie = graphie[:-oter]
                     if ajouter != "0":
                         graphie += ajouter
@@ -186,13 +227,13 @@ class Lemmatiseur(object):
 
     @staticmethod
     def format_result(form, lemma, morphos=None):
-        return {"form": form, "lemma": lemma.grq(), "morph": morphos or []}
+        return {"form": form, "lemma": lemma.gr(), "morph": morphos or []}
 
     def lemmatise(self, f):
         """ Lemmatise un mot f
         """
-        result = DefaultOrderedDict(list)
-        if f:
+        result = []
+        if not f:
             return result
 
         v_maj = f[0] == 'V'
@@ -200,39 +241,40 @@ class Lemmatiseur(object):
         cnt_v = f_lower.count("v")
         cnt_ae = f_lower.count("æ")
         cnt_oe = f_lower.count("œ")
-        if f_lower.endsWith("æ"):
+        if f_lower.endswith("æ"):
             cnt_ae -= 1
-        f = deramise(f)
+        form = deramise(f)
+        del f
         # formes irrégulières
 
-        for irr in self._irregs[f]:
+        for irr in self._irregs[form]:
             for m in irr.morphos():
-                result[f].append(Lemmatiseur.format_result(form=f, lemma=irr, morphos=self.morpho(m)))
+                result.append(Lemmatiseur.format_result(form=form, lemma=irr.grq(), morphos=self.morpho(m)))
 
         # radical + désinence
-        for i in range(len(f)):
-            r = f[:i]
-            d = f[i:]
-            ldes = self._desinences[d] # List of desinences
-            if ldes.empty():
+        for i in range(len(form)):
+            radical = form[:i]
+            desinence = form[i:]
+            ldes = self._desinences.get(desinence, None)  # List of desinences
+            if ldes is None:
                 continue
             # Je regarde d'abord si d est une désinence possible,
             # car il y a moins de désinences que de radicaux.
             # Je fais la recherche sur les radicaux seulement si la désinence existe.
-            lrad = [] + self._radicaux[r]
+            lrad = [] + self._radicaux.get(radical, [])
             # ii noté ī
             # 1. Patauium, gén. Pataui : Patau.i . Patau+i.i
             # 2. conubium, conubis : conubi.s . conubi.i+s
-            if d.startswith('i') and not d.startswith("ii") and not r.endswith('i'):
-                lrad += self._radicaux[r + "i"]
+            if desinence.startswith('i') and not desinence.startswith("ii") and not radical.endswith('i'):
+                lrad += self._radicaux.get(radical + "i", [])
 
-            if len(lrad) == 0: # Il n'y a rien à faire si le radical n'existe pas.
+            if len(lrad) == 0:  # Il n'y a rien à faire si le radical n'existe pas.
                 continue
 
             for rad in lrad:
-                l = rad.lemme()
+                lemme = rad.lemme()
                 for des in ldes:
-                    if des.modele() == l.modele() and des.numRad() == rad.numRad() and not l.estIrregExcl(des.morphoNum()):
+                    if des.modele() == lemme.modele() and des.numRad() == rad.numRad() and not lemme.estIrregExcl(des.morphoNum()):
                         # Need to explain this line
                         c = cnt_v == 0 or (cnt_v == rad.grq().lower().count("v") + des.grq().count("v"))
 
@@ -247,12 +289,12 @@ class Lemmatiseur(object):
                         c = c and cnt_ae == 0 or cnt_ae == (rad.grq().toLower().count("āe") + rad.grq().toLower().count("prăe"))
 
                         if c:
-                            if not r.endswith("i") and rad.gr().endswith("i"):
+                            if not radical.endswith("i") and rad.gr().endswith("i"):
                                 fq = rad.grq()[:len(rad.grq())-1] + "ī" + des.grq()[len(des.grq())-1:]
                             else:
                                 fq = rad.grq() + des.grq()
 
-                            result[l].append(Lemmatiseur.format_result(l, fq, morphos=self.morpho(des.morphoNum())))
+                            result.append(Lemmatiseur.format_result(form, lemme, morphos=self.morpho(des.morphoNum())))
 
 
         ############################
@@ -268,12 +310,12 @@ class Lemmatiseur(object):
         #   if (not res.isEmpty()) result = res
 
         # romains
-        if estRomain(f) and not f in self._lemmes:
+        if estRomain(form) and form not in self._lemmes:
             # Peut - être mieux à faire
-            result[f].append(
+            result.append(
                 Lemmatiseur.format_result(
-                    form=f,
-                    lemma=Lemme("{}|inv|||adj. num.|1".format(f), 0, self)
+                    form=form,
+                    lemma=Lemme("{}|inv|||adj. num.|1".format(form), 0, self)
                 )
             )
 

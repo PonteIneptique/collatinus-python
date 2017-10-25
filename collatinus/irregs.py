@@ -6,8 +6,8 @@ class Irreg(object):
     def __init__(self, l, parent=None):
         """ Constructeur de la classe Irreg.
 
-        :param l: Clé de lemme dans le lemmatiseur
-        :type l: ???
+        :param l: Ligne de chargement des irréguliers
+        :type l: str
         :param parent: Lemmatiseur
         :type parent: collatinus.lemmatiseur.Lemmatiseur
         """
@@ -16,7 +16,7 @@ class Irreg(object):
         ecl = l.split(':')
         self._grq = ecl[0]
         self._exclusif = False
-        if self._grq.endsWith("*"):
+        if self._grq.endswith("*"):
             self._grq = self._grq[:-1]
             self._exclusif = True
 

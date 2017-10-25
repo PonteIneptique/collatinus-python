@@ -79,6 +79,8 @@ class Lemme(object):
         """
         self._lemmatiseur = parent
         self._radicaux = DefaultOrderedDict(list)
+        self._irregs = []  # list of Irreg
+        self._morphosIrrExcl = []  # list of int
 
         eclats = linea.split('|')
         lg = eclats[0].split('=')
