@@ -48,6 +48,18 @@ def atone(string, caps=True):
     return a
 
 
+_VOY_COMMUNES = re.compile("\w*[aeiouy]\w*")
+
+
+_VOY_REPLACE = [
+    (re.compile("([^āăō])e"), "\1ē̆"),
+    (re.compile("^e"),"ē"),
+    (re.compile("([^āēq])u"), "\1ū̆"),
+    (re.compile("^u"), "ū̆"),
+    (re.compile("^y"),"ȳ̆"),
+    (re.compile("([^ā])y"), "\1ȳ̆")
+]
+
 def communes(g):
     """ Note comme communes toutes les voyelles qui ne portent pas de quantité.
 
@@ -58,21 +70,18 @@ def communes(g):
     """
     if len(g) == 0:
         return g
+
     maj = g[0].isupper()
     g = g.lower()
-    if g.contains("a") or g.contains("e") or g.contains("i") or g.contains("o") or g.contains("u") or g.contains("y"):
-        g = g.replace("a","ā̆") \
-             .replace(QRegExp("([^āăō])e"),"\\1ē̆") \
-             .replace(QRegExp("^e"),"ē̆") \
-             .replace("i","ī̆") \
-             .replace("o","ō̆") \
-             .replace(QRegExp("([^āēq])u"),"\\1ū̆") \
-             .replace(QRegExp("^u"),"ū̆") \
-             .replace(QRegExp("^y"),"ȳ̆") \
-             .replace(QRegExp("([^ā])y"),"\\1ȳ̆")
+    if _VOY_COMMUNES.match(g):
+        g = g.replace("a", "ā̆") \
+             .replace("i", "ī̆") \
+             .replace("o", "ō̆")
+        for regex, replace in _VOY_REPLACE:
+            g = regex.sub(replace, g)
 
     if maj:
-        g[0] = g[0].upper() + g[1:]
+        g = g[0].upper() + g[1:]
 
     return g
 

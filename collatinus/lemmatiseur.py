@@ -128,8 +128,9 @@ class Lemmatiseur(object):
         ''' insérer d'abord les radicaux définis dans lemmes.la
         qui sont prioritaires '''
         for i in lemme.clesR():
-            radical = lemme.radical(i)
-            self._radicaux[deramise(radical.gr())] = radicals
+            radical_list = lemme.radical(i)
+            for radical in radical_list:
+                self._radicaux[deramise(radical.gr())].append(radical)
 
         # pour chaque radical du modèle
         for indice_radical in m.clesR():
@@ -152,9 +153,9 @@ class Lemmatiseur(object):
                         graphie += ajouter
                 r = Radical(graphie, indice_radical, lemme)
 
-            # Doute si cela n'appartient pas à graphe in gs
-            lemme.ajRadical(indice_radical, r)
-            self._radicaux[deramise(r.gr())] = r
+                # Doute si cela n'appartient pas à graphe in gs
+                lemme.ajRadical(indice_radical, r)
+                self._radicaux[deramise(r.gr())].append(r)
 
     def ajDesinence(self, d):
         """ Ajoute la désinence d dans la map des désinences. """

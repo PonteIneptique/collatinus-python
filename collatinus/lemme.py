@@ -354,8 +354,8 @@ class Lemme(object):
         
         :param r: Numéro de radical
         :type r: int
-        :return: Radical numéro R
-        :rtype: Radical
+        :return: Radicaux enregistré au numéro R
+        :rtype: list of Radical
         """
         return self._radicaux[r]
 

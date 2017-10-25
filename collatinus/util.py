@@ -60,6 +60,8 @@ def lignesFichier(nf):
         for line in file.readlines():
             line = line.strip()
             if line and not line.startswith("!") and not line.startswith("! --- "):
+                if "!" in line:
+                    line, _ = tuple(line.split("!"))  # Suprimer les commentaires
                 yield line
 
 
