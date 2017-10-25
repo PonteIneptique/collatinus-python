@@ -223,12 +223,13 @@ class Modele(object):
                     self._lemmatiseur.ajDesinence(dh)
 
             # héritage des radicaux
-            print(self._desinences)
             for numRad in set([d.numRad() for d in flatten(self._desinences.values())]):
-                print(numRad, self._genRadicaux, self._pere._genRadicaux)
                 if numRad not in self._genRadicaux:
-                    nr = self._pere.genRadical(numRad)
-                    self._genRadicaux[numRad] = nr
+                    if self._pere.hasRadical(numRad):
+                        nr = self._pere.genRadical(numRad)
+                        self._genRadicaux[numRad] = nr
+                    else:
+                        warnings.warn(self.__repr__() + " has no radical {}".format(numRad))
 
             # héritage des absents
             self._absents = self._pere.absents()
@@ -249,6 +250,16 @@ class Modele(object):
         for dsuf in ldsuf:
             self._desinences[dsuf.morphoNum()].append(dsuf)
             self._lemmatiseur.ajDesinence(dsuf)
+
+    def hasRadical(self, numRad):
+        """ Vérifie que l'objet à le radical donné
+
+        :param numRad: Identifiant de radical
+        :type numRad: int
+        :return: Si l'objet à la radical
+        :rtype: bool
+        """
+        return numRad in self._genRadicaux
 
     @staticmethod
     def listeI(l):
@@ -366,7 +377,6 @@ class Modele(object):
         :return: Chaîne permettant de calculer un radical à partir de la forme canonique d'un lemme. 
         :rtype: str
         """
-        print(self._pere)
         return self._genRadicaux[r]
 
     def morphos(self):
