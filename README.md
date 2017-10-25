@@ -9,6 +9,18 @@ for simple things such as searching for all possible lemmas of each single token
 
 # How to
 
+## Install
+
+At the moment, this library is only usable from this directory. We are planning soon a release and a setup method as package.
+
+You need to download the directory and make sure you have the dependency by typing
+
+```shell
+pip install -r requirements.txt
+```
+
+## Use
+
 The analyzer is pretty easy to use : 
 
 ```python
