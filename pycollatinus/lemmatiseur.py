@@ -284,11 +284,12 @@ class Lemmatiseur(object):
         # formes irrégulières
 
         for irr in self._irregs[form]:
+            print(irr)
             for m in irr.morphos():
                 result.append(Lemmatiseur.format_result(form=form, lemma=irr, morphos=self.morpho(m)))
 
         # radical + désinence
-        for i in range(len(form)):
+        for i in range(len(form)+1):
             radical = form[:i]
             desinence = form[i:]
             ldes = self._desinences.get(desinence, None)  # List of desinences
@@ -330,7 +331,7 @@ class Lemmatiseur(object):
                             else:
                                 fq = rad.grq() + des.grq()
 
-                            result.append(Lemmatiseur.format_result(form, lemme, morphos=self.morpho(des.morphoNum())))
+                        result.append(Lemmatiseur.format_result(form, lemme, morphos=self.morpho(des.morphoNum())))
 
 
         ############################

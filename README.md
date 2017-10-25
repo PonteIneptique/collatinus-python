@@ -17,14 +17,15 @@ analyzer = Lemmatiseur()
 analyzer.lemmatise_multiple("Cogito ergo sum")
 ```
 
-will result in (with a bug for irregular here as ergo is registered !)
+will result in
  
 ```python
 [
-    [{'morph': '2ème singulier impératif futur actif', 'form': 'cogito', 'lemma': 'cogo'}, {'morph': '3ème singulier impératif futur actif', 'form': 'cogito', 'lemma': 'cogo'}, {'morph': '1ère singulier indicatif présent actif', 'form': 'cogito', 'lemma': 'cogito'}, {'morph': '1ère singulier indicatif présent actif', 'form': 'cogito', 'lemma': 'cogito'}], 
-    [{'morph': '1ère singulier indicatif présent actif', 'form': 'ergo', 'lemma': 'ergo'}], 
-    [{'morph': '1ère singulier indicatif présent actif', 'form': 'sum', 'lemma': 'sum'}]
+    [{'lemma': 'cogo', 'morph': '2ème singulier impératif futur actif', 'form': 'cogito'}, {'lemma': 'cogo', 'morph': '3ème singulier impératif futur actif', 'form': 'cogito'}, {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito'}, {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito'}],
+    [{'lemma': 'ergo', 'morph': '1ère singulier indicatif présent actif', 'form': 'ergo'}, {'lemma': 'ergo', 'morph': 'positif', 'form': 'ergo'}],
+    [{'lemma': 'sum', 'morph': '1ère singulier indicatif présent actif', 'form': 'sum'}]
 ]
+
 
 ```
 
