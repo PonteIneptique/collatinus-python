@@ -8,6 +8,7 @@ env
 src
 env2
 test.py
+*.pickle
 
 # Setuptools distribution folder.
 /dist/

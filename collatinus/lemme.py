@@ -95,7 +95,7 @@ class Lemme(object):
             self._grq = lg[1]
 
         # pour l'affichage des dictionnaires, élimine les doubles de la forme canonique
-        self._gr = atone(self._grq.split(",")[0]) ## TODO : À verifier
+        self._gr = atone(self._grq.split(",")[0])  # TODO : À verifier
         self._grModele = eclats[1]
         self._modele = self._lemmatiseur.modele(self._grModele)
         self._hyphen = ""
@@ -156,7 +156,10 @@ class Lemme(object):
             # Je ne peux pas le faire maintenant !
 
         # nombre d'occurrences
-        self._nbOcc = int(eclats[5])
+        if len(eclats[5]):
+            self._nbOcc = int(eclats[5])
+        else:
+            self._nbOcc = 0
 
     def ajIrreg(self, irr):
         """ Ajoute au lemme l'obet irr, représente

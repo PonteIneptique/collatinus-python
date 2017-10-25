@@ -5,6 +5,7 @@ from .irregs import Irreg
 from .modele import Modele
 import os
 import warnings
+from pickle import dump, load
 
 
 class Lemmatiseur(object):
@@ -13,7 +14,7 @@ class Lemmatiseur(object):
     :ivar _radicaux: Dictionary of Radicaux
     :type _radicaux: dict[str, list[collatinus.rad.Radical]]
     """
-    def __init__(self):
+    def __init__(self, load=True):
         """"""
         self._resDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
         self._cible = "fr"  # Langue cible
@@ -38,7 +39,24 @@ class Lemmatiseur(object):
         self._voix = DefaultOrderedDict(list)  # List of Strings
         self._motsClefs = DefaultOrderedDict(list)  # List of Strings
 
-        self.load_from_pkg_data()
+        if load is True:
+            self.load_from_pkg_data()
+
+    def compile(self):
+        """ Compile le lemmatiseur localement
+        """
+        with open(self.path("compiled.pickle"), "wb") as file:
+            dump(self, file)
+
+    @staticmethod
+    def load(path=None):
+        """ Compile le lemmatiseur localement
+        """
+        if path is None:
+            path = os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data"))
+            path = os.path.join(path, "compiled.pickle")
+        with open(path, "rb") as file:
+            return load(file)
 
     def load_from_pkg_data(self):
         self.ajAssims()
@@ -46,6 +64,7 @@ class Lemmatiseur(object):
         self.ajMorphos("fr")  # Note : from lisModeles
         self.ajModeles()  # Note : from lisModeles
         self.ajLexiques()  # Note : from lisLexique
+        self.ajExtensions()  # Note : from lisLexique
         self.ajIrreguliers()
 
     def path(self, nf):
@@ -104,6 +123,10 @@ class Lemmatiseur(object):
         for lin in lignes:
             lemma = Lemme(lin, origin=orig, parent=self)
             self._lemmes[lemma.cle()] = lemma
+
+    def ajExtensions(self):
+        """ Lecture du fichier de lemmes étendus """
+        self.lisFichierLexique(self.path("lem_ext.la"))
 
     def ajLexiques(self):
         """ Lecture du fichier de lemmes de base """
@@ -223,7 +246,7 @@ class Lemmatiseur(object):
             raise KeyError("Morphology %s requested but not found" % m)
         if m == len(self._morphos[l]):
             return "-"
-        return self._morphos[l][m - 1]
+        return self._morphos[l][m]
 
     @staticmethod
     def format_result(form, lemma, morphos=None):
