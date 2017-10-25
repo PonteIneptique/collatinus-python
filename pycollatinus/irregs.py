@@ -9,7 +9,7 @@ class Irreg(object):
         :param l: Ligne de chargement des irréguliers
         :type l: str
         :param parent: Lemmatiseur
-        :type parent: collatinus.lemmatiseur.Lemmatiseur
+        :type parent: pycollatinus.lemmatiseur.Lemmatiseur
         """
         if parent:
             self._lemmat = parent
@@ -52,7 +52,7 @@ class Irreg(object):
         """ Le lemme de l'irrégulier.
 
         :return: Le lemme de l'irrégulier.
-        :rtype: collatinus.lemme.Lemme
+        :rtype: pycollatinus.lemme.Lemme
         """
         return self._lemme
 

@@ -75,7 +75,7 @@ class Lemme(object):
         :param origin: NO FUCKING IDEA
         :type origin: ?
         :param parent: Lemmatiseur
-        :type parent: collatinus.Lemmatiseur
+        :type parent: pycollatinus.Lemmatiseur
         """
         self._lemmatiseur = parent
         self._radicaux = DefaultOrderedDict(list)
@@ -169,7 +169,7 @@ class Lemme(object):
                  dans data/modeles.la.
 
         :param irr: Irrégulier
-        :type irr: collatinus.irregs.Irreg
+        :type irr: pycollatinus.irregs.Irreg
         """
         self._irregs.append(irr)
         # ajouter les numéros de morpho à la liste
@@ -294,7 +294,7 @@ class Lemme(object):
         """ Renvoie l'objet modèle du lemme.
 
         :return: Modèle du lemme
-        :rtype: collatinus.modele.Modele
+        :rtype: pycollatinus.modele.Modele
         """
         return self._modele
 

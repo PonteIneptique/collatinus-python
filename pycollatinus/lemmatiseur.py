@@ -6,13 +6,17 @@ from .modele import Modele
 import os
 import warnings
 from pickle import dump, load
+import re
+
+
+SPACES = re.compile("\W")
 
 
 class Lemmatiseur(object):
     """ Main lemmatiseur object copied directly from CPP
 
     :ivar _radicaux: Dictionary of Radicaux
-    :type _radicaux: dict[str, list[collatinus.rad.Radical]]
+    :type _radicaux: dict[str, list[pycollatinus.rad.Radical]]
     """
     def __init__(self, load=True):
         """"""
@@ -252,6 +256,15 @@ class Lemmatiseur(object):
     def format_result(form, lemma, morphos=None):
         return {"form": form, "lemma": lemma.gr(), "morph": morphos or []}
 
+    def lemmatise_multiple(self, string):
+        """ Lemmatise une liste complète
+
+        :param string: Chaîne à
+        """
+        mots = SPACES.split(string)
+        resultats = [self.lemmatise(mot) for mot in mots]
+        return resultats
+
     def lemmatise(self, f):
         """ Lemmatise un mot f
         """
@@ -266,7 +279,7 @@ class Lemmatiseur(object):
         cnt_oe = f_lower.count("œ")
         if f_lower.endswith("æ"):
             cnt_ae -= 1
-        form = deramise(f)
+        form = deramise(f_lower)
         del f
         # formes irrégulières
 

@@ -7,7 +7,7 @@ from .error import MissingRadical, UnknownModeleConfigurationKey
 
 class Desinence(object):
     def __repr__(self):
-        return "<collatinus.modele.Desinence[{};{};{}]>".format(self.gr(), self.morphoNum(), self.numRad())
+        return "<pycollatinus.modele.Desinence[{};{};{}]>".format(self.gr(), self.morphoNum(), self.numRad())
 
     def __init__(self, d, morph, nr, parent=None):
         """ Desinence
@@ -112,7 +112,7 @@ class Modele(object):
     ]
 
     def __repr__(self):
-        return "<collatinus.modele.Modele[{}]>".format(self.gr())
+        return "<cpyollatinus.modele.Modele[{}]>".format(self.gr())
 
     def __init__(self, ll, parent=None):
         """ Constructeur de la classe modèle. 
@@ -122,7 +122,7 @@ class Modele(object):
 
         :param ll: Liste de champs séparés par le caractère ":". Le premier champ est un mot-clef
         :param parent: Lemmatiseur
-        :type parent: collatinus.lemmatiseur.Lemmatiseur
+        :type parent: pycollatinus.lemmatiseur.Lemmatiseur
 
         :ivar _desinences: Dictionnaire de liste de désinences pour les morpho KEY
         :type _desinences: dict of list of Desinence
