@@ -2,7 +2,7 @@ PyCollatinus
 =========================
 
 PyCollatinus is a port of the famous [Collatinus](https://github.com/biblissima/collatinus) developed in France by
-Y. Ouvrad and P. Verkerk. I translated directly the code from C++, mostly manually. 
+Y. Ouvrard and P. Verkerk. I translated directly the code from C++, mostly manually. 
 
 PyCollatinus aims to provide a Lemmatizer for [CLTK](https://github.com/cltk/cltk) but can also be used
 for simple things such as searching for all possible lemmas of each single token of a sentence.
@@ -37,8 +37,6 @@ will result in
     [{'lemma': 'ergo', 'morph': '1ère singulier indicatif présent actif', 'form': 'ergo'}, {'lemma': 'ergo', 'morph': 'positif', 'form': 'ergo'}],
     [{'lemma': 'sum', 'morph': '1ère singulier indicatif présent actif', 'form': 'sum'}]
 ]
-
-
 ```
 
 ## How to make it faster

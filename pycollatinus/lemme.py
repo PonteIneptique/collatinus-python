@@ -62,6 +62,9 @@ class Radical(object):
 class Lemme(object):
     RENVOI = re.compile("cf\\.\\s(\\w+)$")
 
+    def __repr__(self):
+        return "<pycollatinus.lemme.Lemme[{}:modele-{}]>".format(self.cle(), self.grModele())
+
     def __init__(self, linea, origin, parent):
         """ Constructeur de la classe Lemme à partire de la ligne linea.
             *parent est le lemmatiseur (classe Lemmat).

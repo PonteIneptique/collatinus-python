@@ -1,0 +1,3 @@
+recursive-include pycollatinus/data *.la
+recursive-include pycollatinus/data *.fr
+recursive-include pycollatinus/data *.tag

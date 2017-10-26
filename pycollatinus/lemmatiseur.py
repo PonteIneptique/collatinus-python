@@ -284,7 +284,6 @@ class Lemmatiseur(object):
         # formes irrégulières
 
         for irr in self._irregs[form]:
-            print(irr)
             for m in irr.morphos():
                 result.append(Lemmatiseur.format_result(form=form, lemma=irr, morphos=self.morpho(m)))
 
@@ -299,6 +298,7 @@ class Lemmatiseur(object):
             # car il y a moins de désinences que de radicaux.
             # Je fais la recherche sur les radicaux seulement si la désinence existe.
             lrad = [] + self._radicaux.get(radical, [])
+
             # ii noté ī
             # 1. Patauium, gén. Pataui : Patau.i . Patau+i.i
             # 2. conubium, conubis : conubi.s . conubi.i+s
@@ -312,6 +312,8 @@ class Lemmatiseur(object):
                 lemme = rad.lemme()
                 for des in ldes:
                     if des.modele() == lemme.modele() and des.numRad() == rad.numRad() and not lemme.estIrregExcl(des.morphoNum()):
+                        # Commented this part because we are not using quantity right now.
+                        """
                         # Need to explain this line
                         c = cnt_v == 0 or (cnt_v == rad.grq().lower().count("v") + des.grq().count("v"))
 
@@ -330,7 +332,7 @@ class Lemmatiseur(object):
                                 fq = rad.grq()[:len(rad.grq())-1] + "ī" + des.grq()[len(des.grq())-1:]
                             else:
                                 fq = rad.grq() + des.grq()
-
+                        """
                         result.append(Lemmatiseur.format_result(form, lemme, morphos=self.morpho(des.morphoNum())))
 
 
