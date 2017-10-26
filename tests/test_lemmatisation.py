@@ -35,7 +35,8 @@ class TestSentences(TestCase):
                  {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito'},
                  {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito'}],
                 [{'lemma': 'ergo', 'morph': '1ère singulier indicatif présent actif', 'form': 'ergo'},
-                 {'lemma': 'ergo', 'morph': 'positif', 'form': 'ergo'}],
+                 {'lemma': 'ergo', 'morph': 'positif', 'form': 'ergo'},
+                 {'lemma': 'ergo', 'morph': '-', 'form': 'ergo'}],
                 [{'lemma': 'sum', 'morph': '1ère singulier indicatif présent actif', 'form': 'sum'}]
             ],
             "Ergo, sum and cogito should be recognized"
@@ -43,8 +44,9 @@ class TestSentences(TestCase):
 
     def test_nec_aliud_sequenti_quadriduo(self):
         """ Check that aliud, an irregular form, is well behaving as well as nec, an invariable """
-        results = [
-            [],
+        results = lemmatizer.lemmatise_multiple("nec aliud sequenti quadriduo")
+        expected = [
+            [{'lemma': 'nec', 'morph': '-', 'form': 'nec'}],
             [
                 {'form': 'aliud', 'morph': 'nominatif neutre singulier', 'lemma': 'aliud'},
                 {'form': 'aliud', 'morph': 'vocatif neutre singulier', 'lemma': 'aliud'},
@@ -69,4 +71,7 @@ class TestSentences(TestCase):
                 {'form': 'quadriduo', 'morph': 'ablatif singulier', 'lemma': 'quadriduum'}
             ]
         ]
+        self.assertLemmatisationEqual(
+            results, expected, "Invar should be correctly recognized"
+        )
 

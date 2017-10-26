@@ -153,7 +153,6 @@ class Lemmatiseur(object):
                 m = Modele(sl, parent=self)
                 self._modeles[m.gr()] = m
                 sl = []
-
             sl.append(l)
 
     def modele(self, m):
@@ -198,7 +197,7 @@ class Lemmatiseur(object):
 
         # pour chaque radical du modèle
         for indice_radical in m.clesR():
-            # Si le radical a été défini par le lemme
+            # Si le radical a été défini par le lemme
             if indice_radical in lemme.clesR():
                 continue
             gs = lemme.grq().split(',')
@@ -216,7 +215,8 @@ class Lemmatiseur(object):
                         oter = int(oter)
                     else:
                         oter = int(gen)
-                    graphie = graphie[:-oter]
+                    if oter != 0:
+                        graphie = graphie[:-oter]
                     if ajouter != "0":
                         graphie += ajouter
                 r = Radical(graphie, indice_radical, lemme)

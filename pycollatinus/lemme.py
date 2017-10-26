@@ -339,7 +339,7 @@ class Lemme(object):
         :rtype: str
         """
 
-        c = g[-1:]
+        c = g[-1]
         if c.isnumeric():
             self._nh = int(c)
             g = g[:-1]
