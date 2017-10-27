@@ -12,3 +12,11 @@ script:
     - coverage run --source=pycollatinus setup.py test
 after_success:
     - coveralls
+
+deploy:
+  provider: pypi
+  user: ponteineptique
+  password: $PYPASS
+  on:
+    tags: true
+    python: "3.5"
