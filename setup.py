@@ -13,7 +13,7 @@ setup(
     description='Collatinus Port for Python',
     test_suite="tests",
     install_requires=[
-        "unidecode==0.4.1"
+        "unidecode==0.4.21"
     ],
     test_requires=[
         "coverage==4.4.1"

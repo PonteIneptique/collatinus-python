@@ -1,11 +1,10 @@
 from unittest import TestCase
-
-
 from pycollatinus import Lemmatiseur
-lemmatizer = Lemmatiseur()
 
 
 class TestSentences(TestCase):
+    lemmatizer = Lemmatiseur()
+
     def assertLemmatisationEqual(self, origin, result, message=None):
         _origin = [
             sorted(token, key=lambda x:x["morph"]+x["lemma"])
@@ -26,7 +25,7 @@ class TestSentences(TestCase):
         )
 
     def test_cogito_ergo_sum(self):
-        results = lemmatizer.lemmatise_multiple("cogito ergo sum")
+        results = TestSentences.lemmatizer.lemmatise_multiple("cogito ergo sum")
         self.assertLemmatisationEqual(
             results,
             [
@@ -44,7 +43,7 @@ class TestSentences(TestCase):
 
     def test_nec_aliud_sequenti_quadriduo(self):
         """ Check that aliud, an irregular form, is well behaving as well as nec, an invariable """
-        results = lemmatizer.lemmatise_multiple("nec aliud sequenti quadriduo")
+        results = TestSentences.lemmatizer.lemmatise_multiple("nec aliud sequenti quadriduo")
         expected = [
             [{'lemma': 'nec', 'morph': '-', 'form': 'nec'}],
             [
