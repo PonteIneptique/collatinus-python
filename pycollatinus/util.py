@@ -1,4 +1,5 @@
 from collections import OrderedDict, Callable
+from .ch import clean_double_diacritic
 
 
 class DefaultOrderedDict(OrderedDict):
@@ -62,7 +63,7 @@ def lignesFichier(nf):
             if line and not line.startswith("!") and not line.startswith("! --- "):
                 if "!" in line:
                     line, _ = tuple(line.split("!"))  # Suprimer les commentaires
-                yield line
+                yield clean_double_diacritic(line)
 
 
 def flatten(liste):

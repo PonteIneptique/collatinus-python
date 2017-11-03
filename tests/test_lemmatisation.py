@@ -7,11 +7,11 @@ class TestSentences(TestCase):
 
     def assertLemmatisationEqual(self, origin, result, message=None):
         _origin = [
-            sorted(token, key=lambda x:x["morph"]+x["lemma"])
+            sorted(token, key=lambda x:x["morph"]+x["lemma"]+x.get("pos", "-"))
             for token in origin
         ]
         _result = [
-            sorted(token, key=lambda x:x["morph"]+x["lemma"])
+            sorted(token, key=lambda x:x["morph"]+x["lemma"]+x.get("pos", "-"))
             for token in result
         ]
         self.assertEqual(len(origin), len(result), "There should be as many token in origin as in result")
@@ -40,6 +40,22 @@ class TestSentences(TestCase):
             ],
             "Ergo, sum and cogito should be recognized"
         )
+
+    def test_ego_romanus(self):
+        results = TestSentences.lemmatizer.lemmatise_multiple("mihi Romanorum", pos=True)
+        self.maxDiff = 5000
+        self.assertLemmatisationEqual(results, [
+            [
+                {'form': 'mihi', 'morph': 'datif féminin singulier', 'lemma': 'ego', 'pos': 'p'},
+                {'form': 'mihi', 'morph': 'datif masculin singulier', 'lemma': 'ego', 'pos': 'p'}
+            ],
+            [
+                {'form': 'romanorum', 'pos': 'n', 'morph': 'génitif pluriel', 'lemma': 'Romani'},
+                {'form': 'romanorum', 'pos': 'n', 'morph': 'génitif pluriel', 'lemma': 'Romanus'},
+                {'form': 'romanorum', 'pos': 'a', 'morph': 'génitif masculin pluriel', 'lemma': 'Romanus'},
+                {'form': 'romanorum', 'pos': 'a', 'morph': 'génitif neutre pluriel', 'lemma': 'Romanus'},
+            ]
+        ])
 
     def test_nec_aliud_sequenti_quadriduo(self):
         """ Check that aliud, an irregular form, is well behaving as well as nec, an invariable """
