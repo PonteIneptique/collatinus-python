@@ -90,3 +90,45 @@ class TestSentences(TestCase):
             results, expected, "Invar should be correctly recognized"
         )
 
+    def test_possible_forms(self):
+        self.assertEqual(
+            sorted(self.lemmatizer.lemmatise("bellus", get_lemma_object=True)[0]["lemma"].possible_forms()),
+            sorted([
+                'belliora',
+                'bellae',
+                'bellam',
+                'bellissimis',
+                'bellioris',
+                'bellissimarum',
+                'bellissime',
+                'bellorum',
+                'bellissimum',
+                'belliori',
+                'bellissimorum',
+                'bellissima',
+                'bellum',
+                'bellus',
+                'bellissimae',
+                'bellis',
+                'belli',
+                'belliores',
+                'bellissimo',
+                'bellissimas',
+                'bellioribus',
+                'bellas',
+                'bellior',
+                'belliore',
+                'bellarum',
+                'bella',
+                'bellissimus',
+                'bellissimos',
+                'belliorum',
+                'belle',
+                'bellos',
+                'belliorem',
+                'bellissimam',
+                'bello',
+                'bellissimi',
+                'bellius'
+            ])
+        )

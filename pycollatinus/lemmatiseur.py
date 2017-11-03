@@ -257,27 +257,31 @@ class Lemmatiseur(object):
         return self._morphos[l][m]
 
     @staticmethod
-    def format_result(form, lemma, morphos=None, with_pos=False):
+    def format_result(form, lemma, morphos=None, with_pos=False, raw_obj=False):
         r = {"form": form, "lemma": lemma.gr(), "morph": morphos or []}
+        if raw_obj:
+            r["lemma"] = lemma
         if with_pos:
             r["pos"] = lemma.pos()
         return r
 
-    def lemmatise_multiple(self, string, pos=False):
+    def lemmatise_multiple(self, string, pos=False, get_lemma_object=False):
         """ Lemmatise une liste complète
 
         :param string: Chaîne à lemmatiser
         :param pos: Récupère la POS
+        :param get_lemma_object: Retrieve Lemma object instead of string representation of lemma
         """
         mots = SPACES.split(string)
-        resultats = [self.lemmatise(mot, pos=pos) for mot in mots]
+        resultats = [self.lemmatise(mot, pos=pos, get_lemma_object=get_lemma_object) for mot in mots]
         return resultats
 
-    def lemmatise(self, f, pos=False):
+    def lemmatise(self, f, pos=False, get_lemma_object=False):
         """ Lemmatise un mot f
 
         :param f: Mot à lemmatiser
         :param pos: Récupère la POS
+        :param get_lemma_object: Retrieve Lemma object instead of string representation of lemma
         """
         result = []
         if not f:
@@ -296,7 +300,10 @@ class Lemmatiseur(object):
 
         for irr in self._irregs[form]:
             for m in irr.morphos():
-                result.append(Lemmatiseur.format_result(form=form, lemma=irr, morphos=self.morpho(m), with_pos=pos))
+                result.append(Lemmatiseur.format_result(
+                    form=form, lemma=irr, morphos=self.morpho(m), with_pos=pos,
+                    raw_obj=get_lemma_object
+                ))
 
         # radical + désinence
         for i in range(len(form)+1):
@@ -348,7 +355,12 @@ class Lemmatiseur(object):
                             else:
                                 fq = rad.grq() + des.grq()
                         """
-                        result.append(Lemmatiseur.format_result(form, lemme, morphos=self.morpho(des.morphoNum()), with_pos=pos))
+                        result.append(
+                            Lemmatiseur.format_result(
+                                form, lemme, morphos=self.morpho(des.morphoNum()), with_pos=pos,
+                                raw_obj=get_lemma_object
+                            )
+                        )
 
 
         ############################
@@ -389,13 +401,3 @@ class Lemmatiseur(object):
             :rtype: str
         """
         return self._variables[v]
-
-    def modele(self, m):
-        """ Renvoie l'objet de la classe Modele dont le nom est m.
-
-        :param m: Nom de modele
-        :type m: str
-        :return: Modele correspondant
-        :rtype: Modele
-        """
-        return self._modeles[m]

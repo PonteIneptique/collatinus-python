@@ -410,3 +410,15 @@ class Lemme(object):
         :return: Césure étymologique du lemme
         """
         return self._hyphen
+
+    def possible_forms(self):
+        """ Generate a list of possible forms for the current lemma
+
+        :returns: List of possible forms for the current lemma
+        :rtype: [str]
+        """
+        forms = []
+        for morph in self.modele().morphos():
+            for desinence in self.modele().desinences(morph):
+                forms.append(self.radical(desinence.numRad()).gr() + desinence.gr())
+        return list(set(forms))
