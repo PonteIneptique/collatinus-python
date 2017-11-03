@@ -112,7 +112,7 @@ class Modele(object):
     ]
 
     def __repr__(self):
-        return "<pyollatinus.modele.Modele[{}]>".format(self.gr())
+        return "<pycollatinus.modele.Modele[{}]>".format(self.gr())
 
     def __init__(self, ll, parent=None):
         """ Constructeur de la classe modèle. 

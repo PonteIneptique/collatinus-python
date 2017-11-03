@@ -1,4 +1,4 @@
-from .ch import atone, deramise, communes
+from .ch import atone, deramise, communes, clean_double_diacritic
 import warnings
 import re
 from .util import DefaultOrderedDict
@@ -58,6 +58,9 @@ class Radical(object):
         """
         return self._numero
 
+    def __repr__(self):
+        return "<pycollatinus.lemme.Radical[{}:{}]>".format(self.gr(), self.numRad())
+
 
 class Lemme(object):
     RENVOI = re.compile("cf\\.\\s(\\w+)$")
@@ -83,7 +86,7 @@ class Lemme(object):
         self._lemmatiseur = parent
         self._radicaux = DefaultOrderedDict(list)
         self._irregs = []  # list of Irreg
-        self._morphosIrrExcl = []  # list of int
+        self._morphosIrrExcl = []  # list of int
 
         eclats = linea.split('|')
         lg = eclats[0].split('=')

@@ -190,10 +190,11 @@ class Lemmatiseur(object):
         m = self.modele(lemme.grModele())
         ''' insérer d'abord les radicaux définis dans lemmes.la
         qui sont prioritaires '''
+
         for i in lemme.clesR():
             radical_list = lemme.radical(i)
             for radical in radical_list:
-                self._radicaux[deramise(radical.gr())].append(radical)
+                self._radicaux[deramise(radical.gr()).lower()].append(radical)
 
         # pour chaque radical du modèle
         for indice_radical in m.clesR():
@@ -215,7 +216,10 @@ class Lemmatiseur(object):
                         oter = int(oter)
                     else:
                         oter = int(gen)
-                    if oter != 0:
+
+                    if oter == len(graphie):
+                        graphie = ""
+                    elif oter != 0:
                         graphie = graphie[:-oter]
                     if ajouter != "0":
                         graphie += ajouter
@@ -223,7 +227,7 @@ class Lemmatiseur(object):
 
                 # Doute si cela n'appartient pas à graphe in gs
                 lemme.ajRadical(indice_radical, r)
-                self._radicaux[deramise(r.gr())].append(r)
+                self._radicaux[deramise(r.gr()).lower()].append(r)
 
     def ajDesinence(self, d):
         """ Ajoute la désinence d dans la map des désinences. """
@@ -253,20 +257,27 @@ class Lemmatiseur(object):
         return self._morphos[l][m]
 
     @staticmethod
-    def format_result(form, lemma, morphos=None):
-        return {"form": form, "lemma": lemma.gr(), "morph": morphos or []}
+    def format_result(form, lemma, morphos=None, with_pos=False):
+        r = {"form": form, "lemma": lemma.gr(), "morph": morphos or []}
+        if with_pos:
+            r["pos"] = lemma.pos()
+        return r
 
-    def lemmatise_multiple(self, string):
+    def lemmatise_multiple(self, string, pos=False):
         """ Lemmatise une liste complète
 
-        :param string: Chaîne à
+        :param string: Chaîne à lemmatiser
+        :param pos: Récupère la POS
         """
         mots = SPACES.split(string)
-        resultats = [self.lemmatise(mot) for mot in mots]
+        resultats = [self.lemmatise(mot, pos=pos) for mot in mots]
         return resultats
 
-    def lemmatise(self, f):
+    def lemmatise(self, f, pos=False):
         """ Lemmatise un mot f
+
+        :param f: Mot à lemmatiser
+        :param pos: Récupère la POS
         """
         result = []
         if not f:
@@ -285,12 +296,16 @@ class Lemmatiseur(object):
 
         for irr in self._irregs[form]:
             for m in irr.morphos():
-                result.append(Lemmatiseur.format_result(form=form, lemma=irr, morphos=self.morpho(m)))
+                result.append(Lemmatiseur.format_result(form=form, lemma=irr, morphos=self.morpho(m), with_pos=pos))
 
         # radical + désinence
         for i in range(len(form)+1):
-            radical = form[:i]
-            desinence = form[i:]
+            if i == 0:
+                radical = ""
+                desinence = form
+            else:
+                radical = form[:i]
+                desinence = form[i:]
             ldes = self._desinences.get(desinence, None)  # List of desinences
             if ldes is None:
                 continue
@@ -333,7 +348,7 @@ class Lemmatiseur(object):
                             else:
                                 fq = rad.grq() + des.grq()
                         """
-                        result.append(Lemmatiseur.format_result(form, lemme, morphos=self.morpho(des.morphoNum())))
+                        result.append(Lemmatiseur.format_result(form, lemme, morphos=self.morpho(des.morphoNum()), with_pos=pos))
 
 
         ############################

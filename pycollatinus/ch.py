@@ -15,6 +15,9 @@ abrev = [
 _SIMPLIFIED_RE = re.compile("\s+")
 
 
+def clean_double_diacritic(string):
+    return string.replace("\u014D\u0306", "\u014D").replace("\u0306\u014D", "\u0306")
+
 def simplified(string):
     """ Remove multiple spaces and strip a string
 
