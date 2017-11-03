@@ -63,3 +63,19 @@ class Irreg(object):
         :rtype: list of int
         """
         return self._morphos
+
+    def pos(self):
+        """ Return the pos of the parent
+
+        :rtype: str
+        """
+        return self.lemme().pos()
+
+    def possible_forms(self):
+        """ Generate a list of possible forms for the current lemma
+
+        :returns: List of possible forms for the current lemma
+        :rtype: [str]
+        """
+        return list(set(self.lemme().possible_forms() + [self.gr()]))
+
