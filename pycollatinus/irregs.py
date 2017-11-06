@@ -71,6 +71,9 @@ class Irreg(object):
         """
         return self.lemme().pos()
 
+    def cle(self):
+        return self.lemme().cle()
+
     def possible_forms(self):
         """ Generate a list of possible forms for the current lemma
 
