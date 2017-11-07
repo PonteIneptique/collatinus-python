@@ -8,7 +8,7 @@ setup(
     packages=find_packages(exclude=["tests"]),
     url='https://github.com/ponteineptique/collatinus-python',
     license='GNU GPL v2',
-    author='Thibault Clerice, Yves Ouvrard, Thibault Clérice',
+    author='Thibault Clerice, Yves Ouvrard, Philippe Verkerk',
     author_email='leponteineptique@gmail.com',
     description='Collatinus Port for Python',
     test_suite="tests",
