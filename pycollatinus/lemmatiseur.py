@@ -116,6 +116,34 @@ class Lemmatiseur(object):
             ass1, ass2 = tuple(lin.split(':'))
             self._contractions[ass1] = ass2
 
+    def assims(self, mot):
+        """ Cherche si la chaîne a peut subir une assimilation, renvoie cette chaîne éventuellement assimilée.
+
+        :param mot: Mot pour lequel on doit vérifier des assimilations
+        :type mot: str
+        :return: Mot assimilé
+        :rtype: str
+        """
+        for replaced, replacement in self._assimsq.items():
+            if mot.startswith(replaced):
+                mot = mot.replace(replaced, replacement)
+                return mot
+        return mot
+
+    def desassims(self, mot):
+        """ Cherche si la chaîne a peut subir une assimilation inversée, renvoie cette chaîne éventuellement assimilée.
+
+        :param mot: Mot pour lequel on doit vérifier des assimilations
+        :type mot: str
+        :return: Mot assimilé
+        :rtype: str
+        """
+        for replacement, replaced in self._assimsq.items():
+            if mot.startswith(replaced):
+                mot = mot.replace(replaced, replacement)
+                return mot
+        return mot
+
     def lisFichierLexique(self, filepath):
         """ Lecture des lemmes, et enregistrement de leurs radicaux
 
@@ -265,45 +293,102 @@ class Lemmatiseur(object):
             r["pos"] = lemma.pos()
         return r
 
-    def lemmatise_multiple(self, string, pos=False, get_lemma_object=False):
+    def lemmatise_multiple(self, string, pos=False, get_lemma_object=False, as_list=True):
         """ Lemmatise une liste complète
 
         :param string: Chaîne à lemmatiser
         :param pos: Récupère la POS
         :param get_lemma_object: Retrieve Lemma object instead of string representation of lemma
+        :param as_list: Retrieve a list of generators instead of a list if set to false
         """
         mots = SPACES.split(string)
         resultats = [self.lemmatise(mot, pos=pos, get_lemma_object=get_lemma_object) for mot in mots]
+        if as_list:
+            resultats = [list(r) for r in resultats]
         return resultats
 
-    def lemmatise(self, f, pos=False, get_lemma_object=False):
+    def _lemmatise_assims(self, f, *args, **kwargs):
+        """ Lemmatise un mot f avec son assimilation
+
+        :param f: Mot à lemmatiser
+        :param pos: Récupère la POS
+        :param get_lemma_object: Retrieve Lemma object instead of string representation of lemma
+        :param results: Current results
+        """
+        forme_assimilee = self.assims(f)
+        if forme_assimilee != f:
+            for proposal in self._lemmatise(forme_assimilee):
+                yield proposal
+
+    def _lemmatise_contractions(self, f, *args, **kwargs):
+        """ Lemmatise un mot f avec sa contraction
+
+        :param f: Mot à lemmatiser
+        :yield: Match formated like in _lemmatise()
+        """
+        fd = f
+        for contraction, decontraction in self._contractions.items():
+            if fd.endswith(contraction):
+                fd = f[:-len(contraction)]
+                if "v" in fd or "V" in fd:
+                    fd += decontraction
+                else:
+                    fd += deramise(decontraction)
+                for proposal in self._lemmatise(fd, *args, **kwargs):
+                    yield proposal
+
+    def _lemmatise_desassims(self, f, *args, **kwargs):
+        """ Lemmatise un mot f avec sa désassimilation
+
+        :param f: Mot à lemmatiser
+        :yield: Match formated like in _lemmatise()
+        """
+        forme_assimilee = self.desassims(f)
+        if forme_assimilee != f:
+            for proposal in self._lemmatise(forme_assimilee, *args, **kwargs):
+                yield proposal
+
+    def lemmatise(self, f, pos=False, get_lemma_object=False, lower=True):
         """ Lemmatise un mot f
 
         :param f: Mot à lemmatiser
         :param pos: Récupère la POS
         :param get_lemma_object: Retrieve Lemma object instead of string representation of lemma
+        :param check_assims: Vérifie les assimilations.
+        """
+        if lower is True:
+            if f.lower() != f:
+                yield from self.lemmatise(f.lower(), pos, get_lemma_object, lower=False)
+
+        f = deramise(f)
+        for proposal in self._lemmatise(f, pos, get_lemma_object):
+            yield proposal
+        for proposal in self._lemmatise_assims(f, pos, get_lemma_object):
+            yield proposal
+        for proposal in self._lemmatise_desassims(f, pos, get_lemma_object):
+            yield proposal
+        for proposal in self._lemmatise_contractions(f, pos, get_lemma_object):
+            yield proposal
+
+    def _lemmatise(self, form, pos=False, get_lemma_object=False):
+        """ Lemmatise un mot f
+
+        :param f: Mot à lemmatiser
+        :param pos: Récupère la POS
+        :param get_lemma_object: Retrieve Lemma object instead of string representation of lemma
+        :param check_assims: Vérifie les assimilations.
         """
         result = []
-        if not f:
+        if not form:
             return result
 
-        v_maj = f[0] == 'V'
-        f_lower = f.lower()
-        cnt_v = f_lower.count("v")
-        cnt_ae = f_lower.count("æ")
-        cnt_oe = f_lower.count("œ")
-        if f_lower.endswith("æ"):
-            cnt_ae -= 1
-        form = deramise(f_lower)
-        del f
         # formes irrégulières
-
         for irr in self._irregs[form]:
             for m in irr.morphos():
-                result.append(Lemmatiseur.format_result(
+                yield Lemmatiseur.format_result(
                     form=form, lemma=irr, morphos=self.morpho(m), with_pos=pos,
                     raw_obj=get_lemma_object
-                ))
+                )
 
         # radical + désinence
         for i in range(len(form)+1):
@@ -335,54 +420,17 @@ class Lemmatiseur(object):
                 for des in ldes:
                     if des.modele() == lemme.modele() and des.numRad() == rad.numRad() and not lemme.estIrregExcl(des.morphoNum()):
                         # Commented this part because we are not using quantity right now.
-                        """
-                        # Need to explain this line
-                        c = cnt_v == 0 or (cnt_v == rad.grq().lower().count("v") + des.grq().count("v"))
-
-                        # Need to explain this line
-                        if not c:
-                            c = v_maj and rad.gr()[0] == 'U' and cnt_v - 1 == rad.grq().lower().count("v")
-
-                        # Need to explain this line
-                        c = c and cnt_oe == 0 or cnt_oe == rad.grq().toLower().count("ōe")
-
-                        # Need to explain this line
-                        c = c and cnt_ae == 0 or cnt_ae == (rad.grq().toLower().count("āe") + rad.grq().toLower().count("prăe"))
-
-                        if c:
-                            if not radical.endswith("i") and rad.gr().endswith("i"):
-                                fq = rad.grq()[:len(rad.grq())-1] + "ī" + des.grq()[len(des.grq())-1:]
-                            else:
-                                fq = rad.grq() + des.grq()
-                        """
-                        result.append(
-                            Lemmatiseur.format_result(
+                        yield Lemmatiseur.format_result(
                                 form, lemme, morphos=self.morpho(des.morphoNum()), with_pos=pos,
                                 raw_obj=get_lemma_object
                             )
-                        )
-
-
-        ############################
-        # Pas une priorité
-        ############################
-        #
-        #if self._extLoaded and not self._extension and not result:
-        #    # L'extension est chargée mais je ne veux voir les solutions qui en viennent que si toutes en viennent.
-        #    MapLem res
-        #    foreach (Lemme *l, result.keys())
-        #        if l.origin() == 0:
-        #            res[l] = result[l]
-        #   if (not res.isEmpty()) result = res
 
         # romains
         if estRomain(form) and form not in self._lemmes:
             # Peut - être mieux à faire
-            result.append(
-                Lemmatiseur.format_result(
-                    form=form,
-                    lemma=Lemme("{}|inv|||adj. num.|1".format(form), 0, self)
-                )
+            yield Lemmatiseur.format_result(
+                form=form,
+                lemma=Lemme("{}|inv|||adj. num.|1".format(form), 0, self)
             )
 
         return result

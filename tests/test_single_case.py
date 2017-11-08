@@ -39,8 +39,8 @@ class TestSpecificCases(TestCase):
         ergo = Lemme("ergō=ērgō|inv|||conj.|1450", origin=0, parent=x)
         x._lemmes[nec.cle()] = nec
         x._lemmes[ergo.cle()] = ergo
-        self.assertEqual(x.lemmatise("nec"), [{'lemma': 'nec', 'morph': '-', 'form': 'nec'}])
-        self.assertEqual(x.lemmatise("ergo"), [{'lemma': 'ergo', 'morph': '-', 'form': 'ergo'}])
+        self.assertEqual(list(x.lemmatise("nec")), [{'lemma': 'nec', 'morph': '-', 'form': 'nec'}])
+        self.assertEqual(list(x.lemmatise("ergo")), [{'lemma': 'ergo', 'morph': '-', 'form': 'ergo'}])
 
     def test_romanorum(self):
         x = Lemmatiseur(load=False)

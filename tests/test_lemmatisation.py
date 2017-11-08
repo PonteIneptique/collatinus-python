@@ -7,7 +7,7 @@ class TestSentences(TestCase):
 
     def assertLemmatisationEqual(self, origin, result, message=None):
         _origin = [
-            sorted(token, key=lambda x:x["morph"]+x["lemma"]+x.get("pos", "-"))
+            sorted(list(token), key=lambda x:x["morph"]+x["lemma"]+x.get("pos", "-"))
             for token in origin
         ]
         _result = [
@@ -15,7 +15,7 @@ class TestSentences(TestCase):
             for token in result
         ]
         self.assertEqual(len(origin), len(result), "There should be as many token in origin as in result")
-        for index, token in enumerate(origin):
+        for index, token in enumerate(_origin):
             self.assertEqual(len(token), len(result[index]),
                              "Token {} should have the same size than its result".format(index)
                              )
@@ -92,7 +92,7 @@ class TestSentences(TestCase):
 
     def test_possible_forms(self):
         self.assertEqual(
-            sorted(self.lemmatizer.lemmatise("bellus", get_lemma_object=True)[0]["lemma"].possible_forms()),
+            sorted(list(self.lemmatizer.lemmatise("bellus", get_lemma_object=True))[0]["lemma"].possible_forms()),
             sorted([
                 'belliora',
                 'bellae',
@@ -131,4 +131,26 @@ class TestSentences(TestCase):
                 'bellissimi',
                 'bellius'
             ])
+        )
+
+    def test_assimilations(self):
+        """ Check that lemmatizer handles correctly assimilations """
+        results = TestSentences.lemmatizer.lemmatise_multiple("adprehendant expectari")
+        self.assertLemmatisationEqual(
+            results,
+            [
+                [{'lemma': 'apprehendo', 'form': 'apprehendant', 'morph': '3ème pluriel subjonctif présent actif'}],
+                [{'lemma': 'exspecto', 'form': 'exspectari', 'morph': 'infinitif présent passif'}]
+            ]
+        )
+
+    def test_contractions(self):
+        """ Check that the lemmatizer handles correctly contractions """
+        results = TestSentences.lemmatizer.lemmatise_multiple("exspirasset legarat")
+        self.assertLemmatisationEqual(
+            results,
+            [
+                [{'form': 'exspirauisset', 'morph': '3ème singulier subjonctif PQP actif', 'lemma': 'exspiro'}],
+                [{'lemma': 'lego', 'morph': '3ème singulier indicatif PQP actif', 'form': 'legauerat'}]
+            ]
         )
