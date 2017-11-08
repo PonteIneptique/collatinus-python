@@ -116,6 +116,34 @@ class Lemmatiseur(object):
             ass1, ass2 = tuple(lin.split(':'))
             self._contractions[ass1] = ass2
 
+    def assims(self, mot):
+        """ Cherche si la chaîne a peut subir une assimilation, renvoie cette chaîne éventuellement assimilée.
+
+        :param mot: Mot pour lequel on doit vérifier des assimilations
+        :type mot: str
+        :return: Mot assimilé
+        :rtype: str
+        """
+        for replaced, replacement in self._assimsq.items():
+            if mot.startswith(replaced):
+                mot = mot.replace(replaced, replacement)
+                return mot
+        return mot
+
+    def desassims(self, mot):
+        """ Cherche si la chaîne a peut subir une assimilation inversée, renvoie cette chaîne éventuellement assimilée.
+
+        :param mot: Mot pour lequel on doit vérifier des assimilations
+        :type mot: str
+        :return: Mot assimilé
+        :rtype: str
+        """
+        for replacement, replaced in self._assimsq.items():
+            if mot.startswith(replaced):
+                mot = mot.replace(replaced, replacement)
+                return mot
+        return mot
+
     def lisFichierLexique(self, filepath):
         """ Lecture des lemmes, et enregistrement de leurs radicaux
 
@@ -276,12 +304,13 @@ class Lemmatiseur(object):
         resultats = [self.lemmatise(mot, pos=pos, get_lemma_object=get_lemma_object) for mot in mots]
         return resultats
 
-    def lemmatise(self, f, pos=False, get_lemma_object=False):
+    def lemmatise(self, f, pos=False, get_lemma_object=False, check_assims=True):
         """ Lemmatise un mot f
 
         :param f: Mot à lemmatiser
         :param pos: Récupère la POS
         :param get_lemma_object: Retrieve Lemma object instead of string representation of lemma
+        :param check_assims: Vérifie les assimilations.
         """
         result = []
         if not f:
@@ -363,6 +392,7 @@ class Lemmatiseur(object):
                         )
 
 
+
         ############################
         # Pas une priorité
         ############################
@@ -375,6 +405,21 @@ class Lemmatiseur(object):
         #            res[l] = result[l]
         #   if (not res.isEmpty()) result = res
 
+        if check_assims:
+            forme_assimilee = self.assims(form)
+            if forme_assimilee != form:
+                clef_uniques = self.clefs_uniques(result)
+                for proposal in self.lemmatise(forme_assimilee, check_assims=False):
+                    if proposal not in clef_uniques:
+                        result.append(proposal)
+
+            forme_assimilee = self.desassims(form)
+            if forme_assimilee != form:
+                clef_uniques = self.clefs_uniques(result)
+                for proposal in self.lemmatise(forme_assimilee, check_assims=False):
+                    if proposal not in clef_uniques:
+                        result.append(proposal)
+
         # romains
         if estRomain(form) and form not in self._lemmes:
             # Peut - être mieux à faire
@@ -386,6 +431,25 @@ class Lemmatiseur(object):
             )
 
         return result
+
+    def clefs_uniques(self, list_result, get_lemma_object=False):
+        """ Get a set of unique clefs
+
+        :param list_result: List of results from .result according to format_result
+        :param get_lemma_object: Retrieve lemma object instead of graphie
+        :return: List of unique clefs represented by lemma-morph
+        """
+        if get_lemma_object:
+            data = [
+                "{}-{}".format(result.get("lemma").gr(), result.get("morph", ""))
+                for result in list_result
+            ]
+        else:
+            data = [
+                "{}-{}".format(result.get("lemma"), result.get("morph", ""))
+                for result in list_result
+            ]
+        return list(set(data))
 
     def variable(self, v):
         """ Permet de remplacer la métavariable v

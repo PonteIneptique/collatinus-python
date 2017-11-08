@@ -132,3 +132,14 @@ class TestSentences(TestCase):
                 'bellius'
             ])
         )
+
+    def test_assimilations(self):
+        """ Check that aliud, an irregular form, is well behaving as well as nec, an invariable """
+        results = TestSentences.lemmatizer.lemmatise_multiple("adprehendant expectari")
+        self.assertLemmatisationEqual(
+            results,
+            [
+                [{'lemma': 'apprehendo', 'form': 'apprehendant', 'morph': '3ème pluriel subjonctif présent actif'}],
+                [{'lemma': 'exspecto', 'form': 'exspectari', 'morph': 'infinitif présent passif'}]
+            ]
+        )
