@@ -348,7 +348,7 @@ class Lemmatiseur(object):
             for proposal in self._lemmatise(forme_assimilee, *args, **kwargs):
                 yield proposal
 
-    def lemmatise(self, f, pos=False, get_lemma_object=False):
+    def lemmatise(self, f, pos=False, get_lemma_object=False, lower=True):
         """ Lemmatise un mot f
 
         :param f: Mot à lemmatiser
@@ -356,6 +356,11 @@ class Lemmatiseur(object):
         :param get_lemma_object: Retrieve Lemma object instead of string representation of lemma
         :param check_assims: Vérifie les assimilations.
         """
+        if lower is True:
+            if f.lower() != f:
+                yield from self.lemmatise(f.lower(), pos, get_lemma_object, lower=False)
+
+        f = deramise(f)
         for proposal in self._lemmatise(f, pos, get_lemma_object):
             yield proposal
         for proposal in self._lemmatise_assims(f, pos, get_lemma_object):
@@ -365,7 +370,7 @@ class Lemmatiseur(object):
         for proposal in self._lemmatise_contractions(f, pos, get_lemma_object):
             yield proposal
 
-    def _lemmatise(self, f, pos=False, get_lemma_object=False):
+    def _lemmatise(self, form, pos=False, get_lemma_object=False):
         """ Lemmatise un mot f
 
         :param f: Mot à lemmatiser
@@ -374,20 +379,10 @@ class Lemmatiseur(object):
         :param check_assims: Vérifie les assimilations.
         """
         result = []
-        if not f:
+        if not form:
             return result
 
-        v_maj = f[0] == 'V'
-        f_lower = f.lower()
-        cnt_v = f_lower.count("v")
-        cnt_ae = f_lower.count("æ")
-        cnt_oe = f_lower.count("œ")
-        if f_lower.endswith("æ"):
-            cnt_ae -= 1
-        form = deramise(f_lower)
-        del f
         # formes irrégulières
-
         for irr in self._irregs[form]:
             for m in irr.morphos():
                 yield Lemmatiseur.format_result(
