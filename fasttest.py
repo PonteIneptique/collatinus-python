@@ -2,9 +2,11 @@ from pycollatinus.lemmatiseur import Lemmatiseur
 
 l = Lemmatiseur.load()
 
-print(l.lemmatise("exspirasset"))
-print(l.lemmatise("adprehendant"))
-print(l.lemmatise(""))
-print(l.lemmatise("exspectari"))
-print(l.lemmatise("vexassent"))
-print(l.lemmatise("vexavissent"))
+_print = lambda x: print(list(x))
+
+_print(l.lemmatise("exspirasset"))
+_print(l.lemmatise("adprehendant"))
+_print(l.lemmatise("legarat"))
+_print(l.lemmatise("exspectari"))
+_print(l.lemmatise("vexassent"))
+_print(l.lemmatise("vexavissent"))
