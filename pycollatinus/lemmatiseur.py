@@ -1,11 +1,9 @@
-from .ch import estRomain, deramise, atone
-from .util import DefaultOrderedDict, lignesFichier, flatten
-from .lemme import Lemme, Radical
-from .irregs import Irreg
+from .ch import estRomain, deramise
+from .util import DefaultOrderedDict
+from .lemme import Lemme
 from .modele import Modele
+from .parser import Parser
 import os
-import warnings
-from pickle import dump, load
 import re
 
 
@@ -44,77 +42,13 @@ class Lemmatiseur(object):
         self._motsClefs = DefaultOrderedDict(list)  # List of Strings
 
         if load is True:
-            self.load_from_pkg_data()
-
-    def compile(self):
-        """ Compile le lemmatiseur localement
-        """
-        with open(self.path("compiled.pickle"), "wb") as file:
-            dump(self, file)
+            status = Parser(self).parse()
 
     @staticmethod
     def load(path=None):
         """ Compile le lemmatiseur localement
         """
-        if path is None:
-            path = os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data"))
-            path = os.path.join(path, "compiled.pickle")
-        with open(path, "rb") as file:
-            return load(file)
-
-    def load_from_pkg_data(self):
-        self.ajAssims()
-        self.ajContractions()
-        self.ajMorphos("fr")  # Note : from lisModeles
-        self.ajModeles()  # Note : from lisModeles
-        self.ajLexiques()  # Note : from lisLexique
-        self.ajExtensions()  # Note : from lisLexique
-        self.ajIrreguliers()
-
-    def path(self, nf):
-        """ Compute the path for the file to load
-
-        :rtype: str
-        """
-        return os.path.join(self._resDir, nf)
-
-    def ajMorphos(self, lang="fr"):
-        for ligne in lignesFichier(self.path("morphos." + lang)):
-            if ":" not in ligne:
-                break
-            morph_id, morph_str = tuple(ligne.split(":"))
-            self._morphos[lang][int(morph_id)] = morph_str
-
-    def ajIrreguliers(self):
-        """ Chargement des formes irrégulières du fichier data/irregs.la
-        """
-        lignes = lignesFichier(self.path("irregs.la"))
-        for lin in lignes:
-            try:
-                irr = Irreg(lin, self)
-                self._irregs[deramise(irr.gr())].append(irr)
-            except Exception as E:
-                print(len(self._lemmes), list(self._lemmes.keys())[0:10])
-                warnings.warn("Erreur au chargement de l'irrégulier\n" + lin + "\n"+ str(E))
-                raise E
-
-        for irr in flatten(self._irregs.values()):
-            irr.lemme().ajIrreg(irr)
-
-    def ajAssims(self):
-        """ Charge et définit les débuts de mots non-assimilés, associe à chacun sa forme assimilée.
-        """
-        for lin in lignesFichier(self.path("assimilations.la")):
-            ass1, ass2 = tuple(lin.split(':'))
-            self._assims[ass1] = ass2
-            self._assimsq[atone(ass1)] = atone(ass2)
-
-    def ajContractions(self):
-        """ Charge et établit une liste qui donne, chaque contraction, forme non contracte qui lui correspond.
-        """
-        for lin in lignesFichier(self.path("contractions.la")):
-            ass1, ass2 = tuple(lin.split(':'))
-            self._contractions[ass1] = ass2
+        return Parser.load(path)
 
     def assims(self, mot):
         """ Cherche si la chaîne a peut subir une assimilation, renvoie cette chaîne éventuellement assimilée.
@@ -144,59 +78,6 @@ class Lemmatiseur(object):
                 return mot
         return mot
 
-    def lisFichierLexique(self, filepath):
-        """ Lecture des lemmes, et enregistrement de leurs radicaux
-
-        :param filepath: Chemin du fichier à charger
-        :type filepath: str
-        """
-        orig = int(filepath.endswith("ext.la"))
-        lignes = lignesFichier(filepath)
-        for ligne in lignes:
-            self._parse_lemme(ligne, orig)
-
-    def _parse_lemme(self, ligne, orig):
-        """ Parse a single lemma ligne """
-        lemma = Lemme(ligne, origin=orig, parent=self)
-        self._register_lemme(lemma)
-
-    def _register_lemme(self, lemma):
-        """ Register a lemma into the Lemmatiseur
-
-        :param lemma: Lemma to register
-        :return:
-        """
-        if lemma.cle() not in self._lemmes:
-            self.ajRadicaux(lemma)
-            self._lemmes[lemma.cle()] = lemma
-
-    def ajExtensions(self):
-        """ Lecture du fichier de lemmes étendus """
-        self.lisFichierLexique(self.path("lem_ext.la"))
-
-    def ajLexiques(self):
-        """ Lecture du fichier de lemmes de base """
-        self.lisFichierLexique(self.path("lemmes.la"))
-
-    def ajModeles(self):
-        """ Lecture des modèles, et enregistrement de leurs désinences
-        """
-        sl = []
-        lines = [line for line in lignesFichier(self.path("modeles.la"))]
-        max = len(lines) - 1
-        for i, l in enumerate(lines):
-            if l.startswith('$'):
-                varname, value = tuple(l.split("="))
-                self._variables[varname] = value
-                continue
-
-            eclats = l.split(":")
-            if (eclats[0] == "modele" or i == max) and len(sl) > 0:
-                m = Modele(sl, parent=self)
-                self._modeles[m.gr()] = m
-                sl = []
-            sl.append(l)
-
     def modele(self, m):
         """ Retrouve le modele pour la clef m
 
@@ -216,64 +97,6 @@ class Lemmatiseur(object):
         :rtype: Lemme
         """
         return self._lemmes[lemme]
-
-    def ajRadicaux(self, lemme):
-        """ Calcule tous les radicaux du lemme l,
-            *  en se servant des modèles, ajoute à ce lemme,
-            *  et ensuite à la map *  des radicaux de la classe Lemmat.
-
-        Ligne type de lemme
-        # ablŭo=ā̆blŭo|lego|ā̆blŭ|ā̆blūt|is, ere, lui, lutum
-        #      0        1    2    3         4
-
-        :param lemme: Lemme
-        :type lemme: Lemme
-        """
-        m = self.modele(lemme.grModele())
-        ''' insérer d'abord les radicaux définis dans lemmes.la
-        qui sont prioritaires '''
-
-        for i in lemme.clesR():
-            radical_list = lemme.radical(i)
-            for radical in radical_list:
-                self._radicaux[deramise(radical.gr()).lower()].append(radical)
-
-        # pour chaque radical du modèle
-        for indice_radical in m.clesR():
-            # Si le radical a été défini par le lemme
-            if indice_radical in lemme.clesR():
-                continue
-            gs = lemme.grq().split(',')
-            for graphie in gs:
-                r = ""
-                gen = m.genRadical(indice_radical)
-                # si gen == 'K', radical est la forme canonique
-                if gen == "-":
-                    continue
-                if gen != "K":
-                    # sinon, la règle de formation du modèle
-                    oter, ajouter = 0, "0"
-                    if "," in gen:
-                        oter, ajouter = tuple(gen.split(","))
-                        oter = int(oter)
-                    else:
-                        oter = int(gen)
-
-                    if oter == len(graphie):
-                        graphie = ""
-                    elif oter != 0:
-                        graphie = graphie[:-oter]
-                    if ajouter != "0":
-                        graphie += ajouter
-                r = Radical(graphie, indice_radical, lemme)
-
-                # Doute si cela n'appartient pas à graphe in gs
-                lemme.ajRadical(indice_radical, r)
-                self._radicaux[deramise(r.gr()).lower()].append(r)
-
-    def ajDesinence(self, d):
-        """ Ajoute la désinence d dans la map des désinences. """
-        self._desinences[deramise(d.gr())].append(d)
 
     def morpho(self, m):
         """ Renvoie la chaîne de rang m dans la liste des morphologies donnée par le fichier data/morphos.la
@@ -342,7 +165,10 @@ class Lemmatiseur(object):
         :param get_lemma_object: Retrieve Lemma object instead of string representation of lemma
         """
         if estRomain(form):
-            _lemma = Lemme("{}|inv|||adj. num.|1".format(form), 0, self, _deramise=False)
+            _lemma = Lemme(
+                cle=form, graphie_accentuee=form, graphie=form, parent=self, origin=0, pos="a",
+                modele=self.modele("inv")
+            )
             yield Lemmatiseur.format_result(
                 form=form,
                 lemma=_lemma,

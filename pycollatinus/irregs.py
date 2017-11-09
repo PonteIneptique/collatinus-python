@@ -1,8 +1,11 @@
-from .ch import atone
-from .modele import Modele
+from .ch import atone, listeI
 
 
 class Irreg(object):
+
+    def __repr__(self):
+        return "<pycollatinus.irregs.Irreg[{}]>".format(self._gr)
+
     def __init__(self, l, parent=None):
         """ Constructeur de la classe Irreg.
 
@@ -22,7 +25,7 @@ class Irreg(object):
 
         self._gr = atone(self._grq)
         self._lemme = self._lemmat.lemme(ecl[1])
-        self._morphos = Modele.listeI(ecl[2])
+        self._morphos = listeI(ecl[2])
 
     def exclusif(self):
         """ True si le lemmes est exclusif, c'est à dire si la forme régulière calculée par le modèle est inusitée, remplace par la forme irrégulière.
