@@ -1,28 +1,30 @@
-from .ch import atone
-from .modele import Modele
+from .ch import atone, listeI
 
 
 class Irreg(object):
-    def __init__(self, l, parent=None):
-        """ Constructeur de la classe Irreg.
 
-        :param l: Ligne de chargement des irréguliers
-        :type l: str
+    def __repr__(self):
+        return "<pycollatinus.irregs.Irreg[{}]>".format(self._gr)
+
+    def __init__(self, graphie_accentuee: str, graphie: str, lemme, morphos: list,
+                 exclusif: bool = False, parent=None):
+        """
+
+        :param graphie_accentuee: Graphie accentuee
+        :param graphie: Graphie
+        :param lemme: Lemma
+        :type lemme: pycollatinus.lemme.Lemme
+        :param morphos: List of morphologies matched by this form
+        :param exclusif: si la forme régulière calculée par le modèle est inusitée, remplace par la forme irrégulière.
         :param parent: Lemmatiseur
         :type parent: pycollatinus.lemmatiseur.Lemmatiseur
         """
-        if parent:
-            self._lemmat = parent
-        ecl = l.split(':')
-        self._grq = ecl[0]
-        self._exclusif = False
-        if self._grq.endswith("*"):
-            self._grq = self._grq[:-1]
-            self._exclusif = True
-
-        self._gr = atone(self._grq)
-        self._lemme = self._lemmat.lemme(ecl[1])
-        self._morphos = Modele.listeI(ecl[2])
+        self._lemmat = parent
+        self._grq = graphie_accentuee
+        self._exclusif = exclusif
+        self._gr = graphie
+        self._lemme = lemme
+        self._morphos = morphos
 
     def exclusif(self):
         """ True si le lemmes est exclusif, c'est à dire si la forme régulière calculée par le modèle est inusitée, remplace par la forme irrégulière.

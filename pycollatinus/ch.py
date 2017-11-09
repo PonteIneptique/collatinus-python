@@ -15,8 +15,37 @@ abrev = [
 _SIMPLIFIED_RE = re.compile("\s+")
 
 
+def listeI(l):
+    """ Fonction importante permettant de renvoyer
+            une liste d'entiers à partir d'une chaîne.
+            La chaîne est une liste de sections séparées
+            par des virgules. Une section peut être soit
+            un entier, soit un intervalle d'entiers. On
+            donne alors les limites inférieure et supérieure
+            de l'intervale, séparées par le caractère '-'.
+            Nombreux exemples d'intervalles dans le fichier
+            data/modeles.la.
+
+    :param l: Chaîne à transformer
+    :type l: str
+    :return: Liste des sections étendues
+    :rtype: list of int
+    """
+    result = []
+    lvirg = l.split(',')
+    for virg in lvirg:
+        if "-" in virg:
+            deb, fin = tuple(virg.split("-"))
+            result += [i for i in range(int(deb), int(fin) + 1)]
+        else:
+            result.append(int(virg))
+
+    return result
+
+
 def clean_double_diacritic(string):
     return string.replace("\u014D\u0306", "\u014D").replace("\u0306\u014D", "\u0306")
+
 
 def simplified(string):
     """ Remove multiple spaces and strip a string
@@ -61,6 +90,7 @@ _VOY_REPLACE = [
     (re.compile("^y"),"ȳ̆"),
     (re.compile("([^ā])y"), "\1ȳ̆")
 ]
+
 
 def communes(g):
     """ Note comme communes toutes les voyelles qui ne portent pas de quantité.

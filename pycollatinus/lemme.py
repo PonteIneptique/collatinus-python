@@ -1,7 +1,7 @@
-from .ch import atone, deramise, communes
-import warnings
+from .ch import atone, communes
 import re
 from .util import DefaultOrderedDict
+from .modele import Modele
 
 
 class Radical(object):
@@ -42,6 +42,15 @@ class Radical(object):
         """
         return self._lemme
 
+    def set_lemme(self, lemme):
+        """ Set the parent lemme
+
+        :param lemme: Lemme
+        :type lemme: Lemme
+        """
+
+        self._lemme = lemme
+
     def modele(self):
         """ Le modèle de flexion du radical
 
@@ -71,106 +80,49 @@ class Lemme(object):
     def __eq__(self, other):
         return self.__repr__() == other.__repr__()
 
-    def __init__(self, linea, origin, parent, _deramise=True):
-        """ Constructeur de la classe Lemme à partire de la ligne linea.
-            *parent est le lemmatiseur (classe Lemmat).
+    def __init__(self,
+                 cle: str, graphie: str, graphie_accentuee: str,
+                 modele: Modele, parent,
+                 radicaux: DefaultOrderedDict=None, origin: int =0, pos: str="-",
+                 nombre_homonymie: int=0, nbOcc: int=0):
+        """  Generate a lemma object
 
-        Exemple de linea avec numéro d'éclat:
-            # cădo|lego|cĕcĭd|cās|is, ere, cecidi, casum|687
-            #   0 | 1  | 2   | 3 |     4                | 5
-
-        :param linea: Ligne à parser
-        :type linea: str
-        :param origin: NO FUCKING IDEA
-        :type origin: ?
+        :param cle: Unique Identifier of the Lemma
+        :type cle: str
+        :param graphie: Graphie
+        :type graphie: str
+        :param graphie_accentuee: Accentuated Graphie
+        :type graphie_accentuee: str
+        :param modele: Modele of the Lemma
+        :type modele: pycollatinus.modele.Modele
         :param parent: Lemmatiseur
         :type parent: pycollatinus.Lemmatiseur
-        :param _deramise: Deramise (V -> U) la forme. A éviter pour les numéros...
+        :param radicaux: Dictionary of list of radicaux
+        :type radicaux: DefaultOrderedDict(list)
+        :param origin: Origin of the lemma (0 curated, 1 automatic import)
+        :type origin: int
+        :param pos: POS tag
+        :type pos: str
+        :param nombre_homonymie: Number to distinguish homonyms
+        :type nombre_homonymie: int
+        :param nbOcc: Number of known occurences
+        :type nbOcc: int
         """
         self._lemmatiseur = parent
-        self._radicaux = DefaultOrderedDict(list)
+        self._radicaux = radicaux or DefaultOrderedDict(list)
         self._irregs = []  # list of Irreg
         self._morphosIrrExcl = []  # list of int
-
-        eclats = linea.split('|')
-        lg = eclats[0].split('=')
-
-        if _deramise:
-            self._cle = atone(deramise(lg[0]))
-        else:
-            self._cle = atone(lg[0])
-        self._nh = 0
-        self._grd = self.oteNh(lg[0])  # TODO: Cette ligne pose un problè : d'ou vient le _nh
-
-        if len(lg) == 1:
-            self._grq = self._grd
-        else:
-            self._grq = lg[1]
-
-        # pour l'affichage des dictionnaires, élimine les doubles de la forme canonique
-        self._gr = atone(self._grq.split(",")[0])  # TODO : À verifier
-        self._grModele = eclats[1]
-        self._modele = self._lemmatiseur.modele(self._grModele)
-        self._hyphen = ""
+        self._nh = nombre_homonymie
+        self._nbOcc = nbOcc
+        self._cle = cle
+        self._grq = graphie_accentuee
+        self._gr = graphie
+        self._grModele = modele.gr()
+        self._modele = modele
+        self._indMorph = ""
+        self._renvoi = None
         self._origin = origin
-
-        # Tous les lemmes doivent avoir été rencontrés une fois
-        self._nbOcc = 1
-
-        # contrôle de format. la liste doit avoir 6 items
-        if len(eclats) < 6:
-            warnings.warn("Ligne mal formée : " + self._gr + "\n ---Dernier champ " + eclats[-1] + "\n ---" +linea)
-
-        # lecture des radicaux, 2 et 3
-        for i in range(2, 4):
-            if eclats[i]:
-                lrad = eclats[i].split(',')
-                for rad in lrad:
-                    self._radicaux[i-1].append(Radical(rad, i-1, self))
-
-        # Gros doute sur le fonctionnement ici
-        self._indMorph = eclats[4]
-        match_renvoi = Lemme.RENVOI.match(self._indMorph)
-        if match_renvoi is not None:
-            self._renvoi = match_renvoi.group(1)
-        else:
-            self._renvoi = ""
-
-        self._pos = ""
-        if "adj." in self._indMorph:
-            self._pos += 'a'
-        if "conj" in self._indMorph:
-            self._pos += 'c'
-        if "excl." in self._indMorph:
-            self._pos += 'e'
-        if "interj" in self._indMorph:
-            self._pos += 'i'
-        if "num." in self._indMorph:
-            self._pos += 'm'
-        if "pron." in self._indMorph:
-            self._pos += 'p'
-        if "prép" in self._indMorph:
-            self._pos += 'r'
-        if "adv" in self._indMorph:
-            self._pos += 'd'
-        if " nom " in self._indMorph:
-            self._pos += 'n'
-        if "npr." in self._indMorph:
-            self._pos += 'n'
-        if not self._pos:
-            self._pos = self._modele.pos()
-            # Je prends le POS du modèle
-            if self._pos == "d" and self._renvoi:
-                self._pos = ""
-            # S'il y a un renvoi (cf.) et que le modèle a donné le POS "d" (adverbe),
-            # je prendrai le pos du renvoi (les indéclinables ont le POS par défaut "d").
-            # Je ne peux pas le faire maintenant !
-
-        # nombre d'occurrences
-        if len(eclats[5]):
-            self._nbOcc = int(eclats[5])
-        else:
-            self._nbOcc = 0
+        self._pos = pos
 
     def ajIrreg(self, irr):
         """ Ajoute au lemme l'obet irr, représente
@@ -188,15 +140,6 @@ class Lemme(object):
         if irr.exclusif():
             self._morphosIrrExcl += irr.morphos()
 
-    def ajNombre(self, n):
-        """ Ajoute l'entier n au nombre d'occurrences du lemme.
-
-        :note: Un lemme de Collatinus peut être associé à plusieurs lemmes du LASLA, d'où la somme.
-        """
-        self._nbOcc += n
-        # Un lemme de Collatinus peut être associé à plusieurs lemmes du LASLA.
-        # D'où la somme.
-
     def ajRadical(self, i, r=None):
         """ Ajoute le radical r de numéro i à la map des radicaux du lemme.
 
@@ -206,15 +149,7 @@ class Lemme(object):
         :type r: Radical
         """
         if r:
-            self._radicaux[i] = r
-
-    def ajTrad(self, t, l):
-        """ Ajoute la traduction t de langue l à la map des traductions du lemme."""
-        pass
-
-    def ambrogio(self):
-        """ Renvoie dans une chaîne un résumé de la traduction du lemme dans toutes les langues cibles disponibles."""
-        pass
+            self._radicaux[i].append(r)
 
     def cle(self):
         """ Renvoie la clé sous laquel le lemme est enregistré dans le lemmatiseur parent.
@@ -224,7 +159,7 @@ class Lemme(object):
         """
         return self._cle
 
-    def clesR(self):
+    def cles_radicaux(self):
         """ Retourne toutes les clés (formes non-ramistes sans diacritiques) de la map des radicaux du lemme.
         """
         return self._radicaux.keys()
@@ -336,22 +271,6 @@ class Lemme(object):
         :rtype: int
         """
         return self._origin
-
-    def oteNh(self, g):
-        """ Supprime le dernier caractère de g si c'est un nombre et
-        renvoie le résultat après avoir donné la valeur de ce nombre à nh.
-
-        :param g: Chaîne
-        :type g: str
-        :return: Chaîne sans le numéro
-        :rtype: str
-        """
-
-        c = g[-1]
-        if c.isnumeric():
-            self._nh = int(c)
-            g = g[:-1]
-        return g
 
     def pos(self):
         """ Renvoie un caractère représentant la catégorie (part of speech, orationis) du lemme.

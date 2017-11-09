@@ -1,51 +1,11 @@
-from unittest import TestCase
 from pycollatinus import Lemmatiseur
-from pycollatinus.lemme import Lemme
+from pycollatinus.parser import Parser
+from tests.util import ExtendedTestCase
 
 
-class TestSentences(TestCase):
+class TestSentences(ExtendedTestCase):
     lemmatizer = Lemmatiseur()
-
-    def assertLemmatisationEqual(self, origin, result, message=None, _lemma_obj=False):
-        if _lemma_obj:
-            _origin = sorted(list(origin), key=lambda x: x["morph"]+x["lemma"].cle()+x.get("pos", "-"))
-            _result = sorted(result, key=lambda x: x["morph"]+x["lemma"].cle()+x.get("pos", "-"))
-        else:
-            _origin = sorted(list(origin), key=lambda x: x["morph"]+x["lemma"]+x.get("pos", "-"))
-            _result = sorted(result, key=lambda x: x["morph"]+x["lemma"]+x.get("pos", "-"))
-
-        self.assertEqual(
-            _origin, _result, message
-        )
-
-    def assertLemmatisationMultipleEqual(self, origin, result, message=None, _lemma_obj=False):
-        if _lemma_obj:
-            _origin = [
-                sorted(list(token), key=lambda x:x["morph"]+x["lemma"].cle()+x.get("pos", "-"))
-                for token in origin
-            ]
-            _result = [
-                sorted(token, key=lambda x:x["morph"]+x["lemma"].cle()+x.get("pos", "-"))
-                for token in result
-            ]
-        else:
-            _origin = [
-                sorted(list(token), key=lambda x:x["morph"]+x["lemma"]+x.get("pos", "-"))
-                for token in origin
-            ]
-            _result = [
-                sorted(token, key=lambda x:x["morph"]+x["lemma"]+x.get("pos", "-"))
-                for token in result
-            ]
-        self.assertEqual(len(origin), len(result), "There should be as many token in origin as in result")
-        for index, token in enumerate(_origin):
-            self.assertEqual(len(token), len(result[index]),
-                             "Token {} should have the same size than its result".format(index)
-                             )
-
-        self.assertEqual(
-            _origin, _result, message
-        )
+    parser = Parser(lemmatizer)
 
     def test_cogito_ergo_sum(self):
         results = TestSentences.lemmatizer.lemmatise_multiple("cogito ergo sum")
@@ -169,13 +129,24 @@ class TestSentences(TestCase):
 
     def test_contractions(self):
         """ Check that the lemmatizer handles correctly contractions """
-        results = TestSentences.lemmatizer.lemmatise_multiple("exspirasset legarat")
+        results = TestSentences.lemmatizer.lemmatise_multiple("exspirasset legarat legerat", get_lemma_object=True)
         self.assertLemmatisationMultipleEqual(
             results,
             [
-                [{'form': 'exspirauisset', 'morph': '3ème singulier subjonctif PQP actif', 'lemma': 'exspiro'}],
-                [{'lemma': 'lego', 'morph': '3ème singulier indicatif PQP actif', 'form': 'legauerat'}]
-            ]
+                [
+                    {'form': 'exspirauisset', 'morph': '3ème singulier subjonctif PQP actif',
+                     'lemma': TestSentences.lemmatizer.lemme("exspiro")}
+                ],
+                [
+                    {'lemma': TestSentences.lemmatizer.lemme("lego2"),
+                     'morph': '3ème singulier indicatif PQP actif', 'form': 'legauerat'}
+                ],
+                [
+                    {'lemma': TestSentences.lemmatizer.lemme("lego"),
+                     'morph': '3ème singulier indicatif PQP actif', 'form': 'legerat'}
+                ]
+            ],
+            _lemma_obj=True
         )
 
     def test_lower_case(self):
@@ -199,13 +170,13 @@ class TestSentences(TestCase):
             results,
             [
                 [
-                    {'lemma': Lemme("XIV|inv|||adj. num.|1", 0, TestSentences.lemmatizer, _deramise=False), 'form': 'XIV', 'morph': ''},
+                    {'lemma': TestSentences.parser.parse_lemme("XIV|inv|||adj. num.|1", 0, _deramise=False), 'form': 'XIV', 'morph': ''},
                 ],
                 [
-                    {'lemma': Lemme("MDCXXIV|inv|||adj. num.|1", 0, TestSentences.lemmatizer, _deramise=False), 'form': 'MDCXXIV', 'morph': ''},
+                    {'lemma': TestSentences.parser.parse_lemme("MDCXXIV|inv|||adj. num.|1", 0, _deramise=False), 'form': 'MDCXXIV', 'morph': ''},
                 ],
                 [
-                    {'lemma': Lemme("XIV|inv|||adj. num.|1", 0, TestSentences.lemmatizer, _deramise=False), 'form': 'XIV', 'morph': ''},
+                    {'lemma': TestSentences.parser.parse_lemme("XIV|inv|||adj. num.|1", 0, _deramise=False), 'form': 'XIV', 'morph': ''},
                 ]
             ], _lemma_obj=True
         )
