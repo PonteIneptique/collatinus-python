@@ -35,6 +35,7 @@ class Parser(object):
         """"""
         self.__lemmatiseur__ = lemmatiseur
         self.__data_directory__ = path or os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+        self.__cible__ = cible
 
     @property
     def data_directory(self):
@@ -63,7 +64,7 @@ class Parser(object):
     def parse(self):
         self.ajAssims()
         self.ajContractions()
-        self.ajMorphos("fr")  # Note : from lisModeles
+        self.ajMorphos(self.__cible__)  # Note : from lisModeles
         self.ajModeles()  # Note : from lisModeles
         self.ajLexiques()  # Note : from lisLexique
         self.ajExtensions()  # Note : from lisLexique
@@ -89,10 +90,10 @@ class Parser(object):
         lignes = lignesFichier(self.path("irregs.la"))
         for lin in lignes:
             try:
-                irr = Irreg(lin, self.lemmatiseur)
+                irr = self.parse_irreg(lin)
                 self.lemmatiseur._irregs[deramise(irr.gr())].append(irr)
             except Exception as E:
-                warnings.warn("Erreur au chargement de l'irrégulier\n" + lin + "\n"+ str(E))
+                warnings.warn("Erreur au chargement de l'irrégulier\n" + lin + "\n" + str(E))
                 raise E
 
         for irr in flatten(self.lemmatiseur._irregs.values()):
@@ -454,3 +455,22 @@ class Parser(object):
         """ Ajoute la désinence d dans la map des désinences. """
         self.lemmatiseur._desinences[deramise(d.gr())].append(d)
 
+    def parse_irreg(self, l):
+        """ Constructeur de la classe Irreg.
+
+        :param l: Ligne de chargement des irréguliers
+        :type l: str
+        """
+        ecl = l.split(':')
+        grq = ecl[0]
+        exclusif = False
+        if grq.endswith("*"):
+            grq = grq[:-1]
+            exclusif = True
+        return Irreg(
+            graphie_accentuee=grq, graphie=atone(grq),
+            exclusif=exclusif,
+            morphos=listeI(ecl[2]),
+            lemme=self.lemmatiseur.lemme(ecl[1]),
+            parent=self.lemmatiseur
+        )
