@@ -34,7 +34,7 @@ class Lemmatiseur(object):
         self._radicaux = DefaultOrderedDict(list)  # List of Radicaux
         self._desinences = DefaultOrderedDict(list)  # List of Desinence
         self._irregs = DefaultOrderedDict(list)  # List of Irreg
-        self._morphos = {"fr":{}}  # List of Strings
+        self._morphos = {"fr": {}}  # List of Strings
         self._cas = DefaultOrderedDict(list)  # List of Strings
         self._genres = DefaultOrderedDict(list)  # List of Strings
         self._nombres = DefaultOrderedDict(list)  # List of Strings
@@ -152,8 +152,22 @@ class Lemmatiseur(object):
         """
         orig = int(filepath.endswith("ext.la"))
         lignes = lignesFichier(filepath)
-        for lin in lignes:
-            lemma = Lemme(lin, origin=orig, parent=self)
+        for ligne in lignes:
+            self._parse_lemme(ligne, orig)
+
+    def _parse_lemme(self, ligne, orig):
+        """ Parse a single lemma ligne """
+        lemma = Lemme(ligne, origin=orig, parent=self)
+        self._register_lemme(lemma)
+
+    def _register_lemme(self, lemma):
+        """ Register a lemma into the Lemmatiseur
+
+        :param lemma: Lemma to register
+        :return:
+        """
+        if lemma.cle() not in self._lemmes:
+            self.ajRadicaux(lemma)
             self._lemmes[lemma.cle()] = lemma
 
     def ajExtensions(self):
@@ -286,7 +300,7 @@ class Lemmatiseur(object):
 
     @staticmethod
     def format_result(form, lemma, morphos=None, with_pos=False, raw_obj=False):
-        r = {"form": form, "lemma": lemma.gr(), "morph": morphos or []}
+        r = {"form": form, "lemma": lemma.gr(), "morph": morphos or ""}
         if raw_obj:
             r["lemma"] = lemma
         if with_pos:
@@ -320,6 +334,25 @@ class Lemmatiseur(object):
             for proposal in self._lemmatise(forme_assimilee, *args, **kwargs):
                 yield proposal
 
+    def _lemmatise_roman_numerals(self, form, pos=False, get_lemma_object=False):
+        """ Lemmatise un mot f si c'est un nombre romain
+
+        :param form: Mot à lemmatiser
+        :param pos: Récupère la POS
+        :param get_lemma_object: Retrieve Lemma object instead of string representation of lemma
+        """
+        if estRomain(form):
+            _lemma = Lemme("{}|inv|||adj. num.|1".format(form), 0, self, _deramise=False)
+            yield Lemmatiseur.format_result(
+                form=form,
+                lemma=_lemma,
+                with_pos=pos,
+                raw_obj=get_lemma_object
+            )
+
+        if form.upper() != form:
+            yield from self._lemmatise_roman_numerals(form.upper(), pos=pos, get_lemma_object=get_lemma_object)
+
     def _lemmatise_contractions(self, f, *args, **kwargs):
         """ Lemmatise un mot f avec sa contraction
 
@@ -334,8 +367,7 @@ class Lemmatiseur(object):
                     fd += decontraction
                 else:
                     fd += deramise(decontraction)
-                for proposal in self._lemmatise(fd, *args, **kwargs):
-                    yield proposal
+                yield from self._lemmatise(fd, *args, **kwargs)
 
     def _lemmatise_desassims(self, f, *args, **kwargs):
         """ Lemmatise un mot f avec sa désassimilation
@@ -354,21 +386,21 @@ class Lemmatiseur(object):
         :param f: Mot à lemmatiser
         :param pos: Récupère la POS
         :param get_lemma_object: Retrieve Lemma object instead of string representation of lemma
-        :param check_assims: Vérifie les assimilations.
+        :param lower: Need to check lowercase version
         """
-        if lower is True:
+        if lower:
+            # We do not run numeral on lower
+            yield from self._lemmatise_roman_numerals(f, pos=pos, get_lemma_object=get_lemma_object)
+
+            # We run on the lower version
             if f.lower() != f:
-                yield from self.lemmatise(f.lower(), pos, get_lemma_object, lower=False)
+                yield from self.lemmatise(f.lower(), pos=pos, get_lemma_object=get_lemma_object, lower=False)
 
         f = deramise(f)
-        for proposal in self._lemmatise(f, pos, get_lemma_object):
-            yield proposal
-        for proposal in self._lemmatise_assims(f, pos, get_lemma_object):
-            yield proposal
-        for proposal in self._lemmatise_desassims(f, pos, get_lemma_object):
-            yield proposal
-        for proposal in self._lemmatise_contractions(f, pos, get_lemma_object):
-            yield proposal
+        yield from self._lemmatise(f, pos=pos, get_lemma_object=get_lemma_object)
+        yield from self._lemmatise_assims(f, pos=pos, get_lemma_object=get_lemma_object)
+        yield from self._lemmatise_desassims(f, pos=pos, get_lemma_object=get_lemma_object)
+        yield from self._lemmatise_contractions(f, pos=pos, get_lemma_object=get_lemma_object)
 
     def _lemmatise(self, form, pos=False, get_lemma_object=False):
         """ Lemmatise un mot f
@@ -424,14 +456,6 @@ class Lemmatiseur(object):
                                 form, lemme, morphos=self.morpho(des.morphoNum()), with_pos=pos,
                                 raw_obj=get_lemma_object
                             )
-
-        # romains
-        if estRomain(form) and form not in self._lemmes:
-            # Peut - être mieux à faire
-            yield Lemmatiseur.format_result(
-                form=form,
-                lemma=Lemme("{}|inv|||adj. num.|1".format(form), 0, self)
-            )
 
         return result
 

@@ -88,7 +88,7 @@ def communes(g):
     return g
 
 
-_ROMAIN_REGEXP = re.compile("[^IVXLCDM]")
+_ROMAIN_REGEXP = re.compile(r"^M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$")
 
 
 def estRomain(f):
@@ -99,7 +99,7 @@ def estRomain(f):
     :return: Statut de nombre romain
     :type: bool
     """
-    return not (_ROMAIN_REGEXP.match(f) or "IL" in f or "IVI" in f)
+    return _ROMAIN_REGEXP.match(f)
 
 
 def deramise(r):

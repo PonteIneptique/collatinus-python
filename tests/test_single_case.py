@@ -35,10 +35,10 @@ class TestSpecificCases(TestCase):
             "des:416:0:-"
         ], parent=x)
         x._modeles[m.gr()] = m
-        nec = Lemme("nĕc|inv|||adv.|6689", origin=0, parent=x)
-        ergo = Lemme("ergō=ērgō|inv|||conj.|1450", origin=0, parent=x)
-        x._lemmes[nec.cle()] = nec
-        x._lemmes[ergo.cle()] = ergo
+
+        x._parse_lemme("nĕc|inv|||adv.|6689", orig=0)
+        x._parse_lemme("ergō=ērgō|inv|||conj.|1450", orig=0)
+
         self.assertEqual(list(x.lemmatise("nec")), [{'lemma': 'nec', 'morph': '-', 'form': 'nec'}])
         self.assertEqual(list(x.lemmatise("ergo")), [{'lemma': 'ergo', 'morph': '-', 'form': 'ergo'}])
 
@@ -72,12 +72,9 @@ class TestSpecificCases(TestCase):
         ], parent=x)
         x._modeles[liberi.gr()] = liberi
 
-        romanus = Lemme("Rōmānus|doctus|||a, um|2392", origin=0, parent=x)
-        x._lemmes[romanus.cle()] = romanus
-        romanus2 = Lemme("Rōmānus2|lupus|||i, m.|8", origin=0, parent=x)
-        x._lemmes[romanus2.cle()] = romanus2
-        romanus3 = Lemme("Rōmāni|liberi|||orum, m.|262", origin=0, parent=x)
-        x._lemmes[romanus3.cle()] = romanus3
+        x._parse_lemme("Rōmānus|doctus|||a, um|2392", orig=0)
+        x._parse_lemme("Rōmānus2|lupus|||i, m.|8", orig=0)
+        x._parse_lemme("Rōmāni|liberi|||orum, m.|262", orig=0)
 
         self.assertEqual(
             sorted(list(set([r["lemma"]+"|"+r["pos"] for r in x.lemmatise("Romanorum", pos=True)]))),

@@ -1,4 +1,4 @@
-from .ch import atone, deramise, communes, clean_double_diacritic
+from .ch import atone, deramise, communes
 import warnings
 import re
 from .util import DefaultOrderedDict
@@ -68,7 +68,10 @@ class Lemme(object):
     def __repr__(self):
         return "<pycollatinus.lemme.Lemme[{}:modele-{}]>".format(self.cle(), self.grModele())
 
-    def __init__(self, linea, origin, parent):
+    def __eq__(self, other):
+        return self.__repr__() == other.__repr__()
+
+    def __init__(self, linea, origin, parent, _deramise=True):
         """ Constructeur de la classe Lemme à partire de la ligne linea.
             *parent est le lemmatiseur (classe Lemmat).
 
@@ -82,6 +85,7 @@ class Lemme(object):
         :type origin: ?
         :param parent: Lemmatiseur
         :type parent: pycollatinus.Lemmatiseur
+        :param _deramise: Deramise (V -> U) la forme. A éviter pour les numéros...
         """
         self._lemmatiseur = parent
         self._radicaux = DefaultOrderedDict(list)
@@ -91,7 +95,10 @@ class Lemme(object):
         eclats = linea.split('|')
         lg = eclats[0].split('=')
 
-        self._cle = atone(deramise(lg[0]))
+        if _deramise:
+            self._cle = atone(deramise(lg[0]))
+        else:
+            self._cle = atone(lg[0])
         self._nh = 0
         self._grd = self.oteNh(lg[0])  # TODO: Cette ligne pose un problè : d'ou vient le _nh
 
@@ -120,8 +127,6 @@ class Lemme(object):
                 lrad = eclats[i].split(',')
                 for rad in lrad:
                     self._radicaux[i-1].append(Radical(rad, i-1, self))
-
-        self._lemmatiseur.ajRadicaux(self)
 
         # Gros doute sur le fonctionnement ici
         self._indMorph = eclats[4]
