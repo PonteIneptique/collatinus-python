@@ -5,6 +5,7 @@ from .modele import Modele
 from .parser import Parser
 import os
 import re
+from pickle import dump, load
 
 
 SPACES = re.compile("\W")
@@ -42,13 +43,30 @@ class Lemmatiseur(object):
         self._motsClefs = DefaultOrderedDict(list)  # List of Strings
 
         if load is True:
-            status = Parser(self).parse()
+            Parser(self, path=self._resDir).parse()
+
+    def compile(self):
+        """ Compile le lemmatiseur localement
+        """
+        with open(self.path("compiled.pickle"), "wb") as file:
+            dump(self, file)
 
     @staticmethod
     def load(path=None):
         """ Compile le lemmatiseur localement
         """
-        return Parser.load(path)
+        if path is None:
+            path = os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data"))
+            path = os.path.join(path, "compiled.pickle")
+        with open(path, "rb") as file:
+            return load(file)
+
+    def path(self, nf):
+        """ Compute the path for the file to load
+
+        :rtype: str
+        """
+        return os.path.join(self._resDir, nf)
 
     def assims(self, mot):
         """ Cherche si la chaîne a peut subir une assimilation, renvoie cette chaîne éventuellement assimilée.

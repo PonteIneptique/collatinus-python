@@ -1,49 +1,11 @@
-from unittest import TestCase
 from pycollatinus import Lemmatiseur
-from pycollatinus.lemme import Lemme
 from pycollatinus.parser import Parser
+from tests.util import ExtendedTestCase
 
-class TestSentences(TestCase):
+
+class TestSentences(ExtendedTestCase):
     lemmatizer = Lemmatiseur()
     parser = Parser(lemmatizer)
-
-    def assertLemmatisationEqual(self, origin, result, message=None, _lemma_obj=False):
-        if _lemma_obj:
-            _origin = sorted(list(origin), key=lambda x: x["morph"]+x["lemma"].cle()+x.get("pos", "-"))
-            _result = sorted(result, key=lambda x: x["morph"]+x["lemma"].cle()+x.get("pos", "-"))
-        else:
-            _origin = sorted(list(origin), key=lambda x: x["morph"]+x["lemma"]+x.get("pos", "-"))
-            _result = sorted(result, key=lambda x: x["morph"]+x["lemma"]+x.get("pos", "-"))
-
-        self.assertEqual(
-            _origin, _result, message
-        )
-
-    def assertLemmatisationMultipleEqual(self, origin, result, message=None, _lemma_obj=False):
-        if _lemma_obj:
-            _origin = [
-                sorted(list(token), key=lambda x:x["morph"]+x["lemma"].cle()+x.get("pos", "-"))
-                for token in origin
-            ]
-            _result = [
-                sorted(token, key=lambda x:x["morph"]+x["lemma"].cle()+x.get("pos", "-"))
-                for token in result
-            ]
-        else:
-            _origin = [
-                sorted(list(token), key=lambda x:x["morph"]+x["lemma"]+x.get("pos", "-"))
-                for token in origin
-            ]
-            _result = [
-                sorted(token, key=lambda x:x["morph"]+x["lemma"]+x.get("pos", "-"))
-                for token in result
-            ]
-        for index, token in enumerate(_origin):
-            self.assertEqual(
-                token,
-                _result[index],
-                "Token {} should have the results than expected ".format(index)
-            )
 
     def test_cogito_ergo_sum(self):
         results = TestSentences.lemmatizer.lemmatise_multiple("cogito ergo sum")

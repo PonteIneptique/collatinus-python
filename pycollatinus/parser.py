@@ -6,7 +6,6 @@ from .modele import Modele, Desinence
 from .error import UnknownModeleConfigurationKey, MissingRadical
 import os
 import warnings
-from pickle import dump, load
 import re
 
 
@@ -44,22 +43,6 @@ class Parser(object):
     @property
     def lemmatiseur(self):
         return self.__lemmatiseur__
-
-    def compile(self):
-        """ Compile le lemmatiseur localement
-        """
-        with open(self.path("compiled.pickle"), "wb") as file:
-            dump(self.lemmatiseur, file)
-
-    @staticmethod
-    def load(path=None):
-        """ Compile le lemmatiseur localement
-        """
-        if path is None:
-            path = os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data"))
-            path = os.path.join(path, "compiled.pickle")
-        with open(path, "rb") as file:
-            return load(file)
 
     def parse(self):
         self.ajAssims()
