@@ -110,7 +110,7 @@ class Modele(object):
     def __repr__(self):
         return "<pycollatinus.modele.Modele[{}]>".format(self.gr())
 
-    def __init__(self, graphie: str, graphie_accentuee: str, parent=None, pere=None):
+    def __init__(self, graphie: str, graphie_accentuee: str, parent=None, pere=None, pos=""):
         self._lemmatiseur = parent
         self._pere = pere
         self._desinences = DefaultOrderedDict(list)
@@ -119,6 +119,7 @@ class Modele(object):
         self._genRadicaux = {}  # int -> str
         self._gr = graphie
         self._grq = graphie_accentuee
+        self._pos = pos
 
     def hasRadical(self, numRad):
         """ Vérifie que l'objet à le radical donné
@@ -228,16 +229,18 @@ class Modele(object):
         """
         return list(self._desinences.keys())
 
+    def set_pos(self, pos: str):
+        """ Change la POS du modele
+
+        :param pos: Part Of Speech of the modele
+        :type pos: str
+        """
+        self._pos = pos
+
     def pos(self):
         """ Retourne la catégorie du modèle, utilisant les ancêtres du modèle.
 
         :return: Catégorie du modèle
         :rtype: str
         """
-        if self.estUn("uita") or self.estUn("lupus") or self.estUn("miles") or self.estUn("manus") or self.estUn("res") or self.estUn("perseus"):
-            return 'n'
-        if self.estUn("doctus") or self.estUn("fortis"):
-            return 'a'
-        if self.estUn("amo") or self.estUn("imitor"):
-            return 'v'
-        return 'd'
+        return self._pos

@@ -45,16 +45,16 @@ class TestSpecificCases(TestCase):
         parser.ajMorphos()
         load_mod_vars(x)
 
-        lupus = parser.parse_modele(["modele:lupus", "R:1:2,0", "des:1-12:1:$lupus"])
+        lupus = parser.parse_modele(["modele:lupus", "R:1:2,0", "des:1-12:1:$lupus", "pos:n"])
         x._modeles[lupus.gr()] = lupus
         doctus = parser.parse_modele([
             "modele:doctus", "R:0:2,0", "R:1:2,ĭ", "R:2:2,īssĭm",
             "des:13-48:0:$lupus;$uita;$templum",
             "des:49-84:1:$compar;$compar;ŭs;ŭs;ŭs;ōrĭs;ōrī;ōrĕ;ōră;ōră;ōră;ōrŭm;ōrĭbŭs",
-            "des:85-120:2:$lupus;$uita;$templum"
+            "des:85-120:2:$lupus;$uita;$templum", "pos:a"
         ])
         x._modeles[doctus.gr()] = doctus
-        liberi = parser.parse_modele(["modele:liberi", "pere:lupus", "R:1:1,0", "abs:1-6"])
+        liberi = parser.parse_modele(["modele:liberi", "pere:lupus", "R:1:1,0", "abs:1-6", "pos:n"])
         x._modeles[liberi.gr()] = liberi
 
         parser.parse_lemme("Rōmānus|doctus|||a, um|2392", origin=0)

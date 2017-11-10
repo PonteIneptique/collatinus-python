@@ -12,7 +12,7 @@ import re
 SPACES = re.compile("\W")
 
 MODELE_CLEFS = [
-    "pere", # 0
+    "pere",  # 0
     "des",  # 1
     "des+",  # 2
     "R",  # 3
@@ -20,6 +20,7 @@ MODELE_CLEFS = [
     "suf",  # 5
     "sufd",  # 6
     "abs+",  # 7
+    "pos",  # 8
 ]
 
 
@@ -302,12 +303,15 @@ class Parser(object):
                         dsuf = Desinence(nd+suf, d.morphoNum(), d.numRad(), modele)
                         modele._desinences[dsuf.morphoNum()].append(dsuf)
                         self.ajDesinence(dsuf)
+            elif type_of_line == 8:  # POS
+                modele.set_pos(eclats[1])
             else:
                 warnings.warn("Modele : Erreur pour " + l, UnknownModeleConfigurationKey)
 
         # père
         if pere:
-
+            if not modele.pos():  # Small difference with original codebase : we inherit the pos if the parent has it
+                modele.set_pos(pere.pos())
             for m in pere.morphos():
                 # héritage des désinence
                 if modele.deja(m):
