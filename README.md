@@ -16,13 +16,7 @@ for simple things such as searching for all possible lemmas of each single token
 
 ## Install
 
-At the moment, this library is only usable from this directory. We are planning soon a release and a setup method as package.
-
-You need to download the directory and make sure you have the dependency by typing
-
-```shell
-pip install -r requirements.txt
-```
+You can install PyCollatinus using pip : `pip install pycollatinus`
 
 ## Use
 
@@ -73,14 +67,6 @@ On a *Intel(R) Core(TM) i3-3120M CPU @ 2.50GHz*, LinuxMint 17 3.8.4 (Ubuntu 2015
 | From compiled data | 5.92 s |
 
 [Script run for these evaluations](eval.py)
- 
-# To do !
-
-- [ ] Writing tests (a lot !)
-- [ ] Ensuring every cases are working
-- [ ] Adding a lemmatizer for CLTK-Latin with some kind of probabilistic weighing.
-- [ ] pip
-- [ ] setup.py
 
 # Licence
 
