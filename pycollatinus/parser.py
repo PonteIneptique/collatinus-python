@@ -143,7 +143,6 @@ class Parser(object):
             grq = grd
         else:
             grq = lg[1]
-
         # Pour l'affichage des dictionnaires, élimine les doubles de la forme canonique
         gr = atone(grq.split(",")[0])
         grModele = eclats[1]
@@ -218,6 +217,13 @@ class Parser(object):
                 rad.set_lemme(lemma)
         self._register_lemme(lemma)
         return lemma
+
+    def register_modele(self, modele: Modele):
+        """ Register a modele onto the lemmatizer
+
+        :param modele: Modele to register
+        """
+        self.lemmatiseur._modeles[modele.gr()] = modele
 
     def parse_modele(self, list_of_lines: list):
         """ Chaque item de la liste list_of_lines est constitué de champs séparé par le caractère ':'. Le premier champ est un mot clé. Le parent est le lemmatiseur.
@@ -377,7 +383,7 @@ class Parser(object):
             eclats = l.split(":")
             if (eclats[0] == "modele" or i == max) and len(sl) > 0:
                 m = self.parse_modele(sl)
-                self.lemmatiseur._modeles[m.gr()] = m
+                self.register_modele(m)
                 sl = []
             sl.append(l)
 

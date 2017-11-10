@@ -178,6 +178,43 @@ des:302:0:ī""".split("\n"))
             ]
         )
 
+    def test_hierosylima(self):
+        test = " Hierosolyma"
+        x = Lemmatiseur(load=False)
+        parser = Parser(x)
+        parser.ajMorphos()
+        parser.ajContractions()
+        parser.ajAssims()
+        load_mod_vars(x)
+        parser.register_modele(parser.parse_modele("""modele:uita
+R:1:1,0
+des:1-12:1:$uita""".split("\n")))
+        parser.register_modele(parser.parse_modele("""modele:roma
+pere:uita
+des:413:1:āe""".split("\n")))
+        parser.register_modele(parser.parse_modele("""modele:doctus
+R:0:2,0
+R:1:2,ĭ
+R:2:2,īssĭm
+des:13-48:0:$lupus;$uita;$templum
+des:49-84:1:$compar;$compar;ŭs;ŭs;ŭs;ōrĭs;ōrī;ōrĕ;ōră;ōră;ōră;ōrŭm;ōrĭbŭs
+des:85-120:2:$lupus;$uita;$templum""".split("\n")))
+        parser.register_modele(parser.parse_modele("""modele:aureus
+pere:doctus
+des:14:0:ŭs
+abs:49-120""".split("\n")))
+
+        parser.parse_lemme("Hĭĕrŏsŏlўma|roma|||ae, f.|5")
+        parser.parse_lemme("Lўcāŏnĭus|aureus|||a, um|5")
+        self.assertEqual(
+            list(x.lemmatise("Hierosolymam")),
+            [{'lemma': 'Hierosolyma', 'form': 'hierosolymam', 'morph': 'accusatif singulier'}]
+        )
+        self.assertEqual(
+            list(x.lemmatise("Lycaonios")),
+            [{'morph': 'accusatif masculin pluriel', 'lemma': 'Lycaonius', 'form': 'lycaonios'}]
+        )
+
     def test_sequens(self):
 
         x = Lemmatiseur(load=False)

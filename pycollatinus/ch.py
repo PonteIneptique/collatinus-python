@@ -11,6 +11,8 @@ abrev = [
     "Vol", "Vop", "Pl"
 ]
 
+_Y_SHORT_REPLACE = re.compile("[Ўў]")
+
 
 _SIMPLIFIED_RE = re.compile("\s+")
 
@@ -68,6 +70,8 @@ def atone(string, caps=True):
     :return: Chaîne nettoyée
     :rtype: str
     """
+    # Fix for unidecode until unidecode stop replace short y by u
+    string = _Y_SHORT_REPLACE.sub("y", string)
     if caps is True:
         return unidecode(string)
     a = ""
@@ -106,9 +110,9 @@ def communes(g):
     maj = g[0].isupper()
     g = g.lower()
     if _VOY_COMMUNES.match(g):
-        g = g.replace("a", "ā̆") \
-             .replace("i", "ī̆") \
-             .replace("o", "ō̆")
+        g = g.replace("a", "ā") \
+             .replace("i", "ī") \
+             .replace("o", "ō")
         for regex, replace in _VOY_REPLACE:
             g = regex.sub(replace, g)
 

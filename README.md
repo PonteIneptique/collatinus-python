@@ -4,6 +4,7 @@ PyCollatinus
 [![Build Status](https://travis-ci.org/PonteIneptique/collatinus-python.svg?branch=master)](https://travis-ci.org/PonteIneptique/collatinus-python)
 [![Coverage Status](https://coveralls.io/repos/github/PonteIneptique/collatinus-python/badge.svg?branch=master)](https://coveralls.io/github/PonteIneptique/collatinus-python?branch=master)
 [![DOI](https://zenodo.org/badge/108088404.svg)](https://zenodo.org/badge/latestdoi/108088404)
+[![PyPI version](https://badge.fury.io/py/pycollatinus.svg)](https://badge.fury.io/py/pycollatinus)
 
 PyCollatinus is a port of the famous [Collatinus](https://github.com/biblissima/collatinus) developed in France by
 Y. Ouvrard and P. Verkerk. I translated directly the code from C++, mostly manually. 
