@@ -14,11 +14,11 @@ for simple things such as searching for all possible lemmas of each single token
 
 # How to
 
-## Install
+## Install
 
 You can install PyCollatinus using pip : `pip install pycollatinus`
 
-## Use
+## Use
 
 The analyzer is pretty easy to use : 
 
@@ -59,6 +59,7 @@ analyzer = Lemmatiseur.load()
 ```
 
 ## Performance
+
 On a *Intel(R) Core(TM) i3-3120M CPU @ 2.50GHz*, LinuxMint 17 3.8.4 (Ubuntu 2015-12-02), Python 3.4.3
 
 | Method | Average Time on 10 calls |
