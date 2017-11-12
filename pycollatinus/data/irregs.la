@@ -37,7 +37,7 @@ dĭūtīssĭmē:diu:412
 dĭūtĭŭs:diu:411
 dīvŏm:deus:10
 dīvŭm:deus:10
-dūc*:duco:181
+!dūc*:duco:181
 ēssĕ*:edo:187
 ēxēssĕ*:exedo:187
 ēxĭēs:exeo:134
@@ -66,7 +66,8 @@ prāetĕrĭĕt:praetereo:135
 prōbĕăt:prohibeo:159
 quāesĭmūs:quaeso:123
 quāesŭmūs:quaeso:123
-quīcquăm:quisquam:13
+quīcquăm:quisquam:13,37,39
+quīdvīs:quiuis:37,39
 rēquĭĕm:requies:3
 rūrī:rus:413
 sīquī:siqui:13
