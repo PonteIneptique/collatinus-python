@@ -141,8 +141,12 @@ class Lemmatiseur(object):
         return self._morphos[l][m]
 
     @staticmethod
-    def format_result(form, lemma, morphos=None, with_pos=False, raw_obj=False):
-        r = {"form": form, "lemma": lemma.gr(), "morph": morphos or ""}
+    def format_result(form, lemma, morphos=None, with_pos=False, raw_obj=False, radical=None, desinence=None):
+        r = {"form": form, "lemma": lemma.gr(), "morph": morphos or "", "radical": None, "desinence": None}
+        if radical:
+            r["radical"] = radical.gr()
+        if desinence:
+            r["desinence"] = desinence.gr()
         if raw_obj:
             r["lemma"] = lemma
         if with_pos:
@@ -307,12 +311,13 @@ class Lemmatiseur(object):
             for rad in lrad:
                 lemme = rad.lemme()
                 for des in ldes:
-                    if des.modele() == lemme.modele() and des.numRad() == rad.numRad() and\
-                            not lemme.estIrregExcl(des.morphoNum()):
+                    if des.modele() == lemme.modele()\
+                            and des.numRad() == rad.numRad()\
+                            and not lemme.estIrregExcl(des.morphoNum()):
                         # Commented this part because we are not using quantity right now.
                         yield Lemmatiseur.format_result(
                                 form, lemme, morphos=self.morpho(des.morphoNum()), with_pos=pos,
-                                raw_obj=get_lemma_object
+                                raw_obj=get_lemma_object, radical=rad, desinence=des
                             )
 
         return result

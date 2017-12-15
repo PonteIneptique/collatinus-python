@@ -12,14 +12,22 @@ class TestSentences(ExtendedTestCase):
         self.assertLemmatisationMultipleEqual(
             results,
             [
-                [{'lemma': 'cogo', 'morph': '2ème singulier impératif futur actif', 'form': 'cogito'},
-                 {'lemma': 'cogo', 'morph': '3ème singulier impératif futur actif', 'form': 'cogito'},
-                 {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito'},
-                 {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito'}],
-                [{'lemma': 'ergo', 'morph': '1ère singulier indicatif présent actif', 'form': 'ergo'},
-                 {'lemma': 'ergo', 'morph': 'positif', 'form': 'ergo'},
-                 {'lemma': 'ergo', 'morph': '-', 'form': 'ergo'}],
-                [{'lemma': 'sum', 'morph': '1ère singulier indicatif présent actif', 'form': 'sum'}]
+                [{'lemma': 'cogo', 'morph': '2ème singulier impératif futur actif', 'form': 'cogito',
+                  'radical': 'cog', 'desinence': 'ito'},
+                 {'lemma': 'cogo', 'morph': '3ème singulier impératif futur actif', 'form': 'cogito',
+                  'radical': 'cog', 'desinence': 'ito'},
+                 {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito',
+                  'radical': 'cogit', 'desinence': 'o'},
+                 {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito',
+                  'radical': 'cogit', 'desinence': 'o'}],
+                [{'lemma': 'ergo', 'morph': '1ère singulier indicatif présent actif', 'form': 'ergo',
+                  'radical': 'erg', 'desinence': 'o'},
+                 {'lemma': 'ergo', 'morph': 'positif', 'form': 'ergo',
+                  'radical': 'ergo', 'desinence': ''},
+                 {'lemma': 'ergo', 'morph': '-', 'form': 'ergo',
+                  'radical': 'ergo', 'desinence': ''}],
+                [{'lemma': 'sum', 'morph': '1ère singulier indicatif présent actif', 'form': 'sum',
+                  'radical': 's', 'desinence': 'um'}]
             ],
             "Ergo, sum and cogito should be recognized"
         )
@@ -29,14 +37,14 @@ class TestSentences(ExtendedTestCase):
         self.maxDiff = 5000
         self.assertLemmatisationMultipleEqual(results, [
             [
-                {'form': 'mihi', 'morph': 'datif féminin singulier', 'lemma': 'ego', 'pos': 'p'},
-                {'form': 'mihi', 'morph': 'datif masculin singulier', 'lemma': 'ego', 'pos': 'p'}
+                {'form': 'mihi', 'morph': 'datif féminin singulier', 'lemma': 'ego', 'pos': 'p', "radical": "", "desinence": "mihi"},
+                {'form': 'mihi', 'morph': 'datif masculin singulier', 'lemma': 'ego', 'pos': 'p', "radical": "", "desinence": "mihi"}
             ],
             [
-                {'form': 'romanorum', 'pos': 'n', 'morph': 'génitif pluriel', 'lemma': 'Romani'},
-                {'form': 'romanorum', 'pos': 'n', 'morph': 'génitif pluriel', 'lemma': 'Romanus'},
-                {'form': 'romanorum', 'pos': 'a', 'morph': 'génitif masculin pluriel', 'lemma': 'Romanus'},
-                {'form': 'romanorum', 'pos': 'a', 'morph': 'génitif neutre pluriel', 'lemma': 'Romanus'},
+                {'form': 'romanorum', 'pos': 'n', 'morph': 'génitif pluriel', 'lemma': 'Romani', "radical": "Roman", "desinence": "orum"},
+                {'form': 'romanorum', 'pos': 'n', 'morph': 'génitif pluriel', 'lemma': 'Romanus', "radical": "Roman", "desinence": "orum"},
+                {'form': 'romanorum', 'pos': 'a', 'morph': 'génitif masculin pluriel', 'lemma': 'Romanus', "radical": "Roman", "desinence": "orum"},
+                {'form': 'romanorum', 'pos': 'a', 'morph': 'génitif neutre pluriel', 'lemma': 'Romanus', "radical": "Roman", "desinence": "orum"},
             ]
         ])
 
@@ -44,29 +52,46 @@ class TestSentences(ExtendedTestCase):
         """ Check that aliud, an irregular form, is well behaving as well as nec, an invariable """
         results = TestSentences.lemmatizer.lemmatise_multiple("nec aliud sequenti quadriduo")
         expected = [
-            [{'lemma': 'nec', 'morph': '-', 'form': 'nec'}],
+            [{'lemma': 'nec', 'morph': '-', 'form': 'nec', 'radical': 'nec', 'desinence': ''}],
             [
-                {'form': 'aliud', 'morph': 'nominatif neutre singulier', 'lemma': 'aliud'},
-                {'form': 'aliud', 'morph': 'vocatif neutre singulier', 'lemma': 'aliud'},
-                {'form': 'aliud', 'morph': 'accusatif neutre singulier', 'lemma': 'aliud'}
+                {'form': 'aliud', 'morph': 'nominatif neutre singulier', 'lemma': 'aliud',
+                                                                                  'radical': None, 'desinence': None},
+                {'form': 'aliud', 'morph': 'vocatif neutre singulier', 'lemma': 'aliud',
+                                                                                  'radical': None, 'desinence': None},
+                {'form': 'aliud', 'morph': 'accusatif neutre singulier', 'lemma': 'aliud',
+                                                                                  'radical': None, 'desinence': None},
             ],
             [
-                {'form': 'sequenti', 'morph': 'datif masculin singulier participe présent actif', 'lemma': 'sequor'},
-                {'form': 'sequenti', 'morph': 'datif féminin singulier participe présent actif', 'lemma': 'sequor'},
-                {'form': 'sequenti', 'morph': 'datif neutre singulier participe présent actif', 'lemma': 'sequor'},
-                {'form': 'sequenti', 'morph': 'datif masculin singulier participe présent actif', 'lemma': 'sequo'},
-                {'form': 'sequenti', 'morph': 'datif féminin singulier participe présent actif', 'lemma': 'sequo'},
-                {'form': 'sequenti', 'morph': 'datif neutre singulier participe présent actif', 'lemma': 'sequo'},
-                {'form': 'sequenti', 'morph': 'datif masculin singulier', 'lemma': 'sequens'},
-                {'form': 'sequenti', 'morph': 'ablatif masculin singulier', 'lemma': 'sequens'},
-                {'form': 'sequenti', 'morph': 'datif féminin singulier', 'lemma': 'sequens'},
-                {'form': 'sequenti', 'morph': 'ablatif féminin singulier', 'lemma': 'sequens'},
-                {'form': 'sequenti', 'morph': 'datif neutre singulier', 'lemma': 'sequens'},
-                {'form': 'sequenti', 'morph': 'ablatif neutre singulier', 'lemma': 'sequens'}
+                {'form': 'sequenti', 'morph': 'datif masculin singulier participe présent actif', 'lemma': 'sequor',
+                 'radical': 'sequ', 'desinence': 'enti'},
+                {'form': 'sequenti', 'morph': 'datif féminin singulier participe présent actif', 'lemma': 'sequor',
+                 'radical': 'sequ', 'desinence': 'enti'},
+                {'form': 'sequenti', 'morph': 'datif neutre singulier participe présent actif', 'lemma': 'sequor',
+                 'radical': 'sequ', 'desinence': 'enti'},
+                {'form': 'sequenti', 'morph': 'datif masculin singulier participe présent actif', 'lemma': 'sequo',
+                 'radical': 'sequ', 'desinence': 'enti'},
+                {'form': 'sequenti', 'morph': 'datif féminin singulier participe présent actif', 'lemma': 'sequo',
+                 'radical': 'sequ', 'desinence': 'enti'},
+                {'form': 'sequenti', 'morph': 'datif neutre singulier participe présent actif', 'lemma': 'sequo',
+                 'radical': 'sequ', 'desinence': 'enti'},
+                {'form': 'sequenti', 'morph': 'datif masculin singulier', 'lemma': 'sequens',
+                 'radical': 'sequent', 'desinence': 'i'},
+                {'form': 'sequenti', 'morph': 'ablatif masculin singulier', 'lemma': 'sequens',
+                 'radical': 'sequent', 'desinence': 'i'},
+                {'form': 'sequenti', 'morph': 'datif féminin singulier', 'lemma': 'sequens',
+                 'radical': 'sequent', 'desinence': 'i'},
+                {'form': 'sequenti', 'morph': 'ablatif féminin singulier', 'lemma': 'sequens',
+                 'radical': 'sequent', 'desinence': 'i'},
+                {'form': 'sequenti', 'morph': 'datif neutre singulier', 'lemma': 'sequens',
+                 'radical': 'sequent', 'desinence': 'i'},
+                {'form': 'sequenti', 'morph': 'ablatif neutre singulier', 'lemma': 'sequens',
+                 'radical': 'sequent', 'desinence': 'i'},
             ],
             [
-                {'form': 'quadriduo', 'morph': 'datif singulier', 'lemma': 'quadriduum'},
-                {'form': 'quadriduo', 'morph': 'ablatif singulier', 'lemma': 'quadriduum'}
+                {'form': 'quadriduo', 'morph': 'datif singulier', 'lemma': 'quadriduum'
+                    , 'radical': 'quadridu', 'desinence': 'o'},
+                {'form': 'quadriduo', 'morph': 'ablatif singulier', 'lemma': 'quadriduum'
+                    , 'radical': 'quadridu', 'desinence': 'o'}
             ]
         ]
         self.assertLemmatisationMultipleEqual(
@@ -122,8 +147,10 @@ class TestSentences(ExtendedTestCase):
         self.assertLemmatisationMultipleEqual(
             results,
             [
-                [{'lemma': 'apprehendo', 'form': 'apprehendant', 'morph': '3ème pluriel subjonctif présent actif'}],
-                [{'lemma': 'exspecto', 'form': 'exspectari', 'morph': 'infinitif présent passif'}]
+                [{'lemma': 'apprehendo', 'form': 'apprehendant', 'morph': '3ème pluriel subjonctif présent actif',
+                  "radical": "apprehend", "desinence": "ant"}],
+                [{'lemma': 'exspecto', 'form': 'exspectari', 'morph': 'infinitif présent passif', "radical": "exspect",
+                  "desinence": "ari"}]
             ]
         )
 
@@ -135,15 +162,18 @@ class TestSentences(ExtendedTestCase):
             [
                 [
                     {'form': 'exspirauisset', 'morph': '3ème singulier subjonctif PQP actif',
-                     'lemma': TestSentences.lemmatizer.lemme("exspiro")}
+                     'lemma': TestSentences.lemmatizer.lemme("exspiro"),
+                     'radical': 'exspirav', 'desinence': 'isset'}
                 ],
                 [
                     {'lemma': TestSentences.lemmatizer.lemme("lego2"),
-                     'morph': '3ème singulier indicatif PQP actif', 'form': 'legauerat'}
+                     'morph': '3ème singulier indicatif PQP actif', 'form': 'legauerat',
+                     'radical': 'legav', 'desinence': 'erat'}
                 ],
                 [
                     {'lemma': TestSentences.lemmatizer.lemme("lego"),
-                     'morph': '3ème singulier indicatif PQP actif', 'form': 'legerat'}
+                     'morph': '3ème singulier indicatif PQP actif', 'form': 'legerat',
+                     'radical': 'leg', 'desinence': 'erat'}
                 ]
             ],
             _lemma_obj=True
@@ -154,13 +184,20 @@ class TestSentences(ExtendedTestCase):
         self.assertLemmatisationEqual(
             results,
             [
-                {'lemma': TestSentences.lemmatizer.lemme("Christus"), 'form': 'christi', 'morph': 'génitif singulier'},
-                {'lemma': TestSentences.lemmatizer.lemme("Christus"), 'form': 'christi', 'morph': 'nominatif pluriel'},
-                {'lemma': TestSentences.lemmatizer.lemme("Christus"), 'form': 'christi', 'morph': 'vocatif pluriel'},
-                {'lemma': TestSentences.lemmatizer.lemme("christus2"), 'form': 'christi', 'morph': 'génitif masculin singulier'},
-                {'lemma': TestSentences.lemmatizer.lemme("christus2"), 'form': 'christi', 'morph': 'nominatif masculin pluriel'},
-                {'lemma': TestSentences.lemmatizer.lemme("christus2"), 'form': 'christi', 'morph': 'vocatif masculin pluriel'},
-                {'lemma': TestSentences.lemmatizer.lemme("christus2"), 'form': 'christi', 'morph': 'génitif neutre singulier'}
+                {'lemma': TestSentences.lemmatizer.lemme("Christus"), 'form': 'christi', 'morph': 'génitif singulier',
+                 'radical': 'Christ', 'desinence': 'i'},
+                {'lemma': TestSentences.lemmatizer.lemme("Christus"), 'form': 'christi', 'morph': 'nominatif pluriel',
+                 'radical': 'Christ', 'desinence': 'i'},
+                {'lemma': TestSentences.lemmatizer.lemme("Christus"), 'form': 'christi', 'morph': 'vocatif pluriel',
+                 'radical': 'Christ', 'desinence': 'i'},
+                {'lemma': TestSentences.lemmatizer.lemme("christus2"), 'form': 'christi', 'morph': 'génitif masculin singulier',
+                 'radical': 'christ', 'desinence': 'i'},
+                {'lemma': TestSentences.lemmatizer.lemme("christus2"), 'form': 'christi', 'morph': 'nominatif masculin pluriel',
+                 'radical': 'christ', 'desinence': 'i'},
+                {'lemma': TestSentences.lemmatizer.lemme("christus2"), 'form': 'christi', 'morph': 'vocatif masculin pluriel',
+                 'radical': 'christ', 'desinence': 'i'},
+                {'lemma': TestSentences.lemmatizer.lemme("christus2"), 'form': 'christi', 'morph': 'génitif neutre singulier',
+                 'radical': 'christ', 'desinence': 'i'}
             ], _lemma_obj=True
         )
 
@@ -170,13 +207,16 @@ class TestSentences(ExtendedTestCase):
             results,
             [
                 [
-                    {'lemma': TestSentences.parser.parse_lemme("XIV|inv|||adj. num.|1", 0, _deramise=False), 'form': 'XIV', 'morph': ''},
+                    {'lemma': TestSentences.parser.parse_lemme("XIV|inv|||adj. num.|1", 0, _deramise=False),
+                     'form': 'XIV', 'morph': '', 'radical': None, 'desinence': None},
                 ],
                 [
-                    {'lemma': TestSentences.parser.parse_lemme("MDCXXIV|inv|||adj. num.|1", 0, _deramise=False), 'form': 'MDCXXIV', 'morph': ''},
+                    {'lemma': TestSentences.parser.parse_lemme("MDCXXIV|inv|||adj. num.|1", 0, _deramise=False),
+                     'form': 'MDCXXIV', 'morph': '', 'radical': None, 'desinence': None},
                 ],
                 [
-                    {'lemma': TestSentences.parser.parse_lemme("XIV|inv|||adj. num.|1", 0, _deramise=False), 'form': 'XIV', 'morph': ''},
+                    {'lemma': TestSentences.parser.parse_lemme("XIV|inv|||adj. num.|1", 0, _deramise=False),
+                     'form': 'XIV', 'morph': '', 'radical': None, 'desinence': None},
                 ]
             ], _lemma_obj=True
         )
@@ -193,21 +233,39 @@ class TestSentences(ExtendedTestCase):
         )
         self.assertLemmatisationMultipleEqual(
             results,
-            [[{'pos': 'cd', 'form': 'et', 'lemma': 'et', 'morph': '-'}],
-             [{'pos': 'v', 'form': 'flauescit', 'lemma': 'flavesco', 'morph': '3ème singulier indicatif présent actif'}],
-             [{'pos': 'n', 'form': 'haphe', 'lemma': 'haphe', 'morph': 'nominatif singulier'},
-              {'pos': 'n', 'form': 'haphe', 'lemma': 'haphe', 'morph': 'vocatif singulier'},
-              {'pos': 'n', 'form': 'haphe', 'lemma': 'haphe', 'morph': 'ablatif singulier'}],
-             [{'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'nominatif masculin pluriel'},
-              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'vocatif masculin pluriel'},
-              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'accusatif masculin pluriel'},
-              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'nominatif féminin pluriel'},
-              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'vocatif féminin pluriel'},
-              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'accusatif féminin pluriel'},
-              {'pos': 'v', 'form': 'graues', 'lemma': 'grauo', 'morph': '2ème singulier subjonctif présent actif'}],
-             [{'pos': 'n', 'form': 'draucis', 'lemma': 'Draucus', 'morph': 'datif pluriel'},
-              {'pos': 'n', 'form': 'draucis', 'lemma': 'Draucus', 'morph': 'ablatif pluriel'},
-              {'pos': 'n', 'form': 'draucis', 'lemma': 'draucus', 'morph': 'datif pluriel'},
-              {'pos': 'n', 'form': 'draucis', 'lemma': 'draucus', 'morph': 'ablatif pluriel'}],
-             [{'pos': 'a', 'form': '', 'lemma': '', 'morph': ''}]]
+            [[{'pos': 'cd', 'form': 'et', 'lemma': 'et', 'morph': '-',
+               'desinence': '', 'radical': 'et'}],
+             [{'pos': 'v', 'form': 'flauescit', 'lemma': 'flavesco', 'morph': '3ème singulier indicatif présent actif',
+               'desinence': 'it', 'radical': 'flavesc'}],
+             [{'pos': 'n', 'form': 'haphe', 'lemma': 'haphe', 'morph': 'nominatif singulier',
+               'desinence': 'e', 'radical': 'haph'},
+              {'pos': 'n', 'form': 'haphe', 'lemma': 'haphe', 'morph': 'vocatif singulier',
+               'desinence': 'e', 'radical': 'haph'},
+              {'pos': 'n', 'form': 'haphe', 'lemma': 'haphe', 'morph': 'ablatif singulier',
+               'desinence': 'e', 'radical': 'haph'}],
+             [{'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'nominatif masculin pluriel',
+                 'desinence': 'es', 'radical': 'grav'},
+              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'vocatif masculin pluriel',
+                 'desinence': 'es', 'radical': 'grav'},
+              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'accusatif masculin pluriel',
+                 'desinence': 'es', 'radical': 'grav'},
+              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'nominatif féminin pluriel',
+                 'desinence': 'es', 'radical': 'grav'},
+              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'vocatif féminin pluriel',
+                 'desinence': 'es', 'radical': 'grav'},
+              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'accusatif féminin pluriel',
+                 'desinence': 'es', 'radical': 'grav'},
+              {'pos': 'v', 'form': 'graues', 'lemma': 'grauo', 'morph': '2ème singulier subjonctif présent actif',
+                 'desinence': 'es', 'radical': 'grau'}
+              ],
+             [{'pos': 'n', 'form': 'draucis', 'lemma': 'Draucus', 'morph': 'datif pluriel',
+               'desinence': 'is', 'radical': 'Drauc'},
+              {'pos': 'n', 'form': 'draucis', 'lemma': 'Draucus', 'morph': 'ablatif pluriel',
+               'desinence': 'is', 'radical': 'Drauc'},
+              {'pos': 'n', 'form': 'draucis', 'lemma': 'draucus', 'morph': 'datif pluriel',
+               'desinence': 'is', 'radical': 'drauc'},
+              {'pos': 'n', 'form': 'draucis', 'lemma': 'draucus', 'morph': 'ablatif pluriel',
+               'desinence': 'is', 'radical': 'drauc'}
+              ]
+             ]
         )
