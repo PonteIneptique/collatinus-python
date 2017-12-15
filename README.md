@@ -32,9 +32,22 @@ will result in
  
 ```python
 [
-    [{'lemma': 'cogo', 'morph': '2ème singulier impératif futur actif', 'form': 'cogito'}, {'lemma': 'cogo', 'morph': '3ème singulier impératif futur actif', 'form': 'cogito'}, {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito'}, {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito'}],
-    [{'lemma': 'ergo', 'morph': '1ère singulier indicatif présent actif', 'form': 'ergo'}, {'lemma': 'ergo', 'morph': 'positif', 'form': 'ergo'}],
-    [{'lemma': 'sum', 'morph': '1ère singulier indicatif présent actif', 'form': 'sum'}]
+    [{'lemma': 'cogo', 'morph': '2ème singulier impératif futur actif', 'form': 'cogito',
+      'radical': 'cog', 'desinence': 'ito'},
+     {'lemma': 'cogo', 'morph': '3ème singulier impératif futur actif', 'form': 'cogito',
+      'radical': 'cog', 'desinence': 'ito'},
+     {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito',
+      'radical': 'cogit', 'desinence': 'o'},
+     {'lemma': 'cogito', 'morph': '1ère singulier indicatif présent actif', 'form': 'cogito',
+      'radical': 'cogit', 'desinence': 'o'}],
+    [{'lemma': 'ergo', 'morph': '1ère singulier indicatif présent actif', 'form': 'ergo',
+      'radical': 'erg', 'desinence': 'o'},
+     {'lemma': 'ergo', 'morph': 'positif', 'form': 'ergo',
+      'radical': 'ergo', 'desinence': ''},
+     {'lemma': 'ergo', 'morph': '-', 'form': 'ergo',
+      'radical': 'ergo', 'desinence': ''}],
+    [{'lemma': 'sum', 'morph': '1ère singulier indicatif présent actif', 'form': 'sum',
+      'radical': 's', 'desinence': 'um'}]
 ]
 ```
 
