@@ -11,6 +11,7 @@ import re
 
 SPACES = re.compile("\W")
 
+
 MODELE_CLEFS = [
     "pere",  # 0
     "des",  # 1
@@ -203,6 +204,7 @@ class Parser(object):
             nbOcc = int(eclats[5])
         else:
             nbOcc = 1
+
 
         lemma = Lemme(
             cle=cle,

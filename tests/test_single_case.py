@@ -36,8 +36,10 @@ class TestSpecificCases(TestCase):
         parser.parse_lemme("nĕc|inv|||adv.|6689", origin=0)
         parser.parse_lemme("ergō=ērgō|inv|||conj.|1450", origin=0)
 
-        self.assertEqual(list(x.lemmatise("nec")), [{'lemma': 'nec', 'morph': '-', 'form': 'nec'}])
-        self.assertEqual(list(x.lemmatise("ergo")), [{'lemma': 'ergo', 'morph': '-', 'form': 'ergo'}])
+        self.assertEqual(list(x.lemmatise("nec")), [{'lemma': 'nec', 'morph': '-', 'form': 'nec',
+                                                     "radical": "nec", "desinence": ""}])
+        self.assertEqual(list(x.lemmatise("ergo")), [{'lemma': 'ergo', 'morph': '-', 'form': 'ergo',
+                                                      'radical': 'ergo', "desinence": ""}])
 
     def test_romanorum(self):
         x = Lemmatiseur(load=False)
@@ -172,9 +174,11 @@ des:302:0:ī""".split("\n"))
             x.lemmatise_multiple("legarat legerat", get_lemma_object=True),
             [
                 [{'lemma': x.lemme("lego2"),
-                 'morph': '3ème singulier indicatif PQP actif', 'form': 'legauerat'}],
+                 'morph': '3ème singulier indicatif PQP actif', 'form': 'legauerat',
+                  "radical": "legav", "desinence": "erat"}],
                 [{'lemma': x.lemme("lego"),
-                 'morph': '3ème singulier indicatif PQP actif', 'form': 'legerat'}]
+                 'morph': '3ème singulier indicatif PQP actif', 'form': 'legerat',
+                  "radical": "leg", "desinence": "erat"}]
             ]
         )
 
@@ -208,11 +212,13 @@ abs:49-120""".split("\n")))
         parser.parse_lemme("Lўcāŏnĭus|aureus|||a, um|5")
         self.assertEqual(
             list(x.lemmatise("Hierosolymam")),
-            [{'lemma': 'Hierosolyma', 'form': 'hierosolymam', 'morph': 'accusatif singulier'}]
+            [{'lemma': 'Hierosolyma', 'form': 'hierosolymam', 'morph': 'accusatif singulier',
+              'radical': 'Hierosolym', "desinence": "am"}]
         )
         self.assertEqual(
             list(x.lemmatise("Lycaonios")),
-            [{'morph': 'accusatif masculin pluriel', 'lemma': 'Lycaonius', 'form': 'lycaonios'}]
+            [{'morph': 'accusatif masculin pluriel', 'lemma': 'Lycaonius', 'form': 'lycaonios',
+              'radical': 'Lycaoni', "desinence": "os"}]
         )
 
     def test_sequens(self):
