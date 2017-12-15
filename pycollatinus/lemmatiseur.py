@@ -34,13 +34,14 @@ class Lemmatiseur(object):
         self._desinences = DefaultOrderedDict(list)  # List of Desinence
         self._irregs = DefaultOrderedDict(list)  # List of Irreg
         self._morphos = {"fr": {}}  # List of Strings
-        self._cas = DefaultOrderedDict(list)  # List of Strings
-        self._genres = DefaultOrderedDict(list)  # List of Strings
-        self._nombres = DefaultOrderedDict(list)  # List of Strings
-        self._temps = DefaultOrderedDict(list)  # List of Strings
-        self._modes = DefaultOrderedDict(list)  # List of Strings
-        self._voix = DefaultOrderedDict(list)  # List of Strings
-        self._motsClefs = DefaultOrderedDict(list)  # List of Strings
+
+        self._suffixes = {
+            "ne": "nĕ",
+            "que": "quĕ",
+            "ue": "vĕ",
+            "ve": "vĕ",
+            "st": "st"
+        }
 
         if load is True:
             Parser(self, path=self._resDir).parse()
@@ -161,7 +162,7 @@ class Lemmatiseur(object):
         :param as_list: Retrieve a list of generators instead of a list if set to false
         """
         mots = SPACES.split(string)
-        resultats = [self.lemmatise(mot, pos=pos, get_lemma_object=get_lemma_object) for mot in mots]
+        resultats = [self.lemmatise(mot, pos=pos, get_lemma_object=get_lemma_object) for mot in mots if mot]
         if as_list:
             resultats = [list(r) for r in resultats]
         return resultats
@@ -228,6 +229,16 @@ class Lemmatiseur(object):
             for proposal in self._lemmatise(forme_assimilee, *args, **kwargs):
                 yield proposal
 
+    def _lemmatise_suffixe(self, f, *args, **kwargs):
+        """ Lemmatise un mot f si il finit par un suffixe
+
+        :param f: Mot à lemmatiser
+        :yield: Match formated like in _lemmatise()
+        """
+        for suffixe in self._suffixes:
+            if f.endswith(suffixe) and suffixe != f:
+                yield from self._lemmatise(f[:-len(suffixe)], *args, **kwargs)
+
     def lemmatise(self, f, pos=False, get_lemma_object=False, lower=True):
         """ Lemmatise un mot f
 
@@ -249,6 +260,8 @@ class Lemmatiseur(object):
         yield from self._lemmatise_assims(f, pos=pos, get_lemma_object=get_lemma_object)
         yield from self._lemmatise_desassims(f, pos=pos, get_lemma_object=get_lemma_object)
         yield from self._lemmatise_contractions(f, pos=pos, get_lemma_object=get_lemma_object)
+
+        yield from self._lemmatise_suffixe(f, pos=pos, get_lemma_object=get_lemma_object)
 
     def _lemmatise(self, form, pos=False, get_lemma_object=False):
         """ Lemmatise un mot f
@@ -301,7 +314,6 @@ class Lemmatiseur(object):
                     if des.modele() == lemme.modele()\
                             and des.numRad() == rad.numRad()\
                             and not lemme.estIrregExcl(des.morphoNum()):
-
                         # Commented this part because we are not using quantity right now.
                         yield Lemmatiseur.format_result(
                                 form, lemme, morphos=self.morpho(des.morphoNum()), with_pos=pos,

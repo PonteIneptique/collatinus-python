@@ -220,3 +220,34 @@ class TestSentences(ExtendedTestCase):
                 ]
             ], _lemma_obj=True
         )
+
+    def test_when_there_is_a_non_word_char(self):
+        results = TestSentences.lemmatizer.lemmatise_multiple(
+            "Qui, quae , quod ! ", pos=True
+        )
+        self.assertEqual(len(results), 3, "Splitting should be operational")
+
+    def test_when_there_is_a_suffixe(self):
+        results = TestSentences.lemmatizer.lemmatise_multiple(
+            "Et flavescit haphe gravesque draucis ", pos=True
+        )
+        self.assertLemmatisationMultipleEqual(
+            results,
+            [[{'pos': 'cd', 'form': 'et', 'lemma': 'et', 'morph': '-'}],
+             [{'pos': 'v', 'form': 'flauescit', 'lemma': 'flavesco', 'morph': '3ème singulier indicatif présent actif'}],
+             [{'pos': 'n', 'form': 'haphe', 'lemma': 'haphe', 'morph': 'nominatif singulier'},
+              {'pos': 'n', 'form': 'haphe', 'lemma': 'haphe', 'morph': 'vocatif singulier'},
+              {'pos': 'n', 'form': 'haphe', 'lemma': 'haphe', 'morph': 'ablatif singulier'}],
+             [{'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'nominatif masculin pluriel'},
+              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'vocatif masculin pluriel'},
+              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'accusatif masculin pluriel'},
+              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'nominatif féminin pluriel'},
+              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'vocatif féminin pluriel'},
+              {'pos': 'a', 'form': 'graues', 'lemma': 'gravis', 'morph': 'accusatif féminin pluriel'},
+              {'pos': 'v', 'form': 'graues', 'lemma': 'grauo', 'morph': '2ème singulier subjonctif présent actif'}],
+             [{'pos': 'n', 'form': 'draucis', 'lemma': 'Draucus', 'morph': 'datif pluriel'},
+              {'pos': 'n', 'form': 'draucis', 'lemma': 'Draucus', 'morph': 'ablatif pluriel'},
+              {'pos': 'n', 'form': 'draucis', 'lemma': 'draucus', 'morph': 'datif pluriel'},
+              {'pos': 'n', 'form': 'draucis', 'lemma': 'draucus', 'morph': 'ablatif pluriel'}],
+             [{'pos': 'a', 'form': '', 'lemma': '', 'morph': ''}]]
+        )

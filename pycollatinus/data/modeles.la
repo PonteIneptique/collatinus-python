@@ -578,7 +578,7 @@ modele:quiuis
 pere:qui
 R:1:6,0
 sufd:vīs
-des+:37,39:1:quīdvīs
+!des+:37,39:1:quīdvīs
 
 modele:quis
 pere:qui
