@@ -31,12 +31,14 @@ class Parser(object):
     :param lemmatiseur: Lemmatiseur object to fill
     :param path: Path in which we find Collatinus data
     :param cible: Language for morphology
+    :param debug: Issues warning on wrongly formated source data
     """
-    def __init__(self, lemmatiseur, path=None, cible="fr"):
+    def __init__(self, lemmatiseur, path=None, cible="fr", debug=False):
         """"""
         self.__lemmatiseur__ = lemmatiseur
         self.__data_directory__ = path or os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
         self.__cible__ = cible
+        self._debug = debug
 
     @property
     def data_directory(self):
@@ -332,7 +334,8 @@ class Parser(object):
                     if pere.hasRadical(numRad):
                         modele._genRadicaux[numRad] = pere.genRadical(numRad)
                     else:
-                        warnings.warn(gr + " has no radical {}".format(numRad), MissingRadical)
+                        if self._debug:
+                            warnings.warn(gr + " has no radical {}".format(numRad), MissingRadical)
 
             # héritage des absents
             modele._absents = pere.absents()

@@ -252,7 +252,7 @@ abs:1-6
 
 modele:turris
 pere:ciuis
-des:3:1:ĭm
+des:3,6:1:ĭm;ī
 
 modele:uis
 pere:ciuis
@@ -455,6 +455,8 @@ des:85-120:1:īssĭm$lupus;īssĭm$uita;īssĭm$templum
 
 modele:infans
 pere:fortis
+des:37-39:1:ns
+des+:18,30,42:1:ē
 des+:22,34,46:1:ŭm3
 
 modele:acer
@@ -528,7 +530,7 @@ abs:14,20,26,32,38,44
 modele:ille
 pere:ipse
 des:13,37,39:0:ĕ;ŭd
-des+:15,18,21,25,27,42:1:ūnc3;ōc3;ōscĭnĕ1;āec3;ānc3;ōc1
+des+:15,18,21,25,27,42,43,45:0:ūnc3;ōc3;ōscĭnĕ1;āec3;ānc3;ōc1;āec;āec
 
 modele:qui
 R:1:3,0
@@ -563,6 +565,7 @@ pere:qui
 R:1:6,0
 sufd:dăm
 des:37,39:1:quīddăm
+des+:25:1:quāndăm
 
 modele:quilibet
 pere:qui
@@ -578,7 +581,7 @@ modele:quiuis
 pere:qui
 R:1:6,0
 sufd:vīs
-!des+:37,39:1:quīdvīs
+des+:37,39:1:quīdvīs
 
 modele:quis
 pere:qui
