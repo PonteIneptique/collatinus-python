@@ -16,14 +16,20 @@ class Lemmatiseur(object):
 
     :ivar _radicaux: Dictionary of Radicaux
     :type _radicaux: dict[str, list[pycollatinus.rad.Radical]]
+
+    :param load: Automatically loads data after init (Default : True)
+    :type debug: int
+    :param debug: Debug mode for developers (Default : False)
+    :type debug: int
     """
-    def __init__(self, load=True):
+    def __init__(self, load=True, debug=False):
         """"""
         self._resDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
         self._cible = "fr"  # Langue cible
         self._modeles = {}  # Modeles
         self._cibles = {}
         self._lemmes = {}  # Lemmes
+        self._debug = debug
 
         self._assims = {}  # str -> str
         self._assimsq = {}  # str -> str
@@ -44,7 +50,7 @@ class Lemmatiseur(object):
         }
 
         if load is True:
-            Parser(self, path=self._resDir).parse()
+            Parser(self, path=self._resDir, debug=self._debug).parse()
 
     def compile(self):
         """ Compile le lemmatiseur localement
